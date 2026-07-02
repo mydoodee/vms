@@ -84,22 +84,24 @@ class VehicleService {
             department, assigned_driver, image_url, document_url, notes,
             insurance_company, insurance_price, insurance_renew_date, work_registration,
             insurance_level, tax_provider, tax_price, tax_renew_date,
-            act_expire, act_provider, act_price, act_renew_date
+            act_expire, act_provider, act_price, act_renew_date, tax_inspection_fee
         } = vehicleData;
 
         const [result] = await pool.execute(
-            `INSERT INTO vehicles (plate_number, brand, model, year, color, engine_number, vin, mileage, fuel_type, insurance_expire, tax_expire, status, department, assigned_driver, image_url, document_url, notes, insurance_company, insurance_price, insurance_renew_date, work_registration, insurance_level, tax_provider, tax_price, tax_renew_date, act_expire, act_provider, act_price, act_renew_date)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO vehicles (plate_number, brand, model, year, color, engine_number, vin, mileage, fuel_type, insurance_expire, tax_expire, status, department, assigned_driver, image_url, document_url, notes, insurance_company, insurance_price, insurance_renew_date, work_registration, insurance_level, tax_provider, tax_price, tax_renew_date, act_expire, act_provider, act_price, act_renew_date, tax_inspection_fee)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [plate_number, brand, model || null, year || null, color || null,
              engine_number || null, vin || null, mileage || 0, fuel_type || 'gasoline',
              insurance_expire || null, tax_expire || null, status || 'active',
              department || null, assigned_driver || null, image_url || null, document_url || null, notes || null,
              insurance_company || null, insurance_price || null, insurance_renew_date || null, work_registration || null,
              insurance_level || null, tax_provider || null, tax_price || null, tax_renew_date || null,
-             act_expire || null, act_provider || null, act_price || null, act_renew_date || null]
+             act_expire || null, act_provider || null, act_price || null, act_renew_date || null, tax_inspection_fee || 0]
         );
 
-        return this.getById(result.insertId);
+        const newVehicle = await this.getById(result.insertId);
+        await this.syncRenewals(result.insertId, newVehicle);
+        return newVehicle;
     }
 
     async update(id, vehicleData) {
@@ -114,7 +116,7 @@ class VehicleService {
             'status', 'department', 'assigned_driver', 'image_url', 'document_url', 'notes',
             'insurance_company', 'insurance_price', 'insurance_renew_date', 'work_registration',
             'insurance_level', 'tax_provider', 'tax_price', 'tax_renew_date',
-            'act_expire', 'act_provider', 'act_price', 'act_renew_date'
+            'act_expire', 'act_provider', 'act_price', 'act_renew_date', 'tax_inspection_fee'
         ];
 
         for (const field of allowedFields) {
@@ -136,7 +138,9 @@ class VehicleService {
             params
         );
 
-        return this.getById(id);
+        const updatedVehicle = await this.getById(id);
+        await this.syncRenewals(id, updatedVehicle);
+        return updatedVehicle;
     }
 
     async delete(id) {
@@ -156,6 +160,70 @@ class VehicleService {
             FROM vehicles
         `);
         return stats[0];
+    }
+
+    async syncRenewals(vehicleId, vehicleData) {
+        // Sync insurance
+        if (vehicleData.insurance_renew_date) {
+            const [rows] = await pool.execute(
+                `SELECT id FROM vehicle_renewals WHERE vehicle_id = ? AND type = 'insurance' ORDER BY renew_date DESC, id DESC LIMIT 1`,
+                [vehicleId]
+            );
+            const price = parseFloat(vehicleData.insurance_price) || 0;
+            if (rows.length > 0) {
+                await pool.execute(
+                    `UPDATE vehicle_renewals SET provider = ?, price = ?, renew_date = ?, expire_date = ?, insurance_level = ?, total_cost = ?, inspection_fee = 0 WHERE id = ?`,
+                    [vehicleData.insurance_company || null, price, vehicleData.insurance_renew_date, vehicleData.insurance_expire || null, vehicleData.insurance_level || null, price, rows[0].id]
+                );
+            } else {
+                await pool.execute(
+                    `INSERT INTO vehicle_renewals (vehicle_id, type, provider, price, renew_date, expire_date, insurance_level, total_cost, inspection_fee) VALUES (?, 'insurance', ?, ?, ?, ?, ?, ?, 0)`,
+                    [vehicleId, vehicleData.insurance_company || null, price, vehicleData.insurance_renew_date, vehicleData.insurance_expire || null, vehicleData.insurance_level || null, price]
+                );
+            }
+        }
+
+        // Sync tax
+        if (vehicleData.tax_renew_date) {
+            const [rows] = await pool.execute(
+                `SELECT id FROM vehicle_renewals WHERE vehicle_id = ? AND type = 'tax' ORDER BY renew_date DESC, id DESC LIMIT 1`,
+                [vehicleId]
+            );
+            const price = parseFloat(vehicleData.tax_price) || 0;
+            const inspectionFee = parseFloat(vehicleData.tax_inspection_fee) || 0;
+            const totalCost = price + inspectionFee;
+            if (rows.length > 0) {
+                await pool.execute(
+                    `UPDATE vehicle_renewals SET provider = ?, price = ?, inspection_fee = ?, renew_date = ?, expire_date = ?, total_cost = ? WHERE id = ?`,
+                    [vehicleData.tax_provider || null, price, inspectionFee, vehicleData.tax_renew_date, vehicleData.tax_expire || null, totalCost, rows[0].id]
+                );
+            } else {
+                await pool.execute(
+                    `INSERT INTO vehicle_renewals (vehicle_id, type, provider, price, inspection_fee, renew_date, expire_date, total_cost) VALUES (?, 'tax', ?, ?, ?, ?, ?, ?)`,
+                    [vehicleId, vehicleData.tax_provider || null, price, inspectionFee, vehicleData.tax_renew_date, vehicleData.tax_expire || null, totalCost]
+                );
+            }
+        }
+
+        // Sync act
+        if (vehicleData.act_renew_date) {
+            const [rows] = await pool.execute(
+                `SELECT id FROM vehicle_renewals WHERE vehicle_id = ? AND type = 'act' ORDER BY renew_date DESC, id DESC LIMIT 1`,
+                [vehicleId]
+            );
+            const price = parseFloat(vehicleData.act_price) || 0;
+            if (rows.length > 0) {
+                await pool.execute(
+                    `UPDATE vehicle_renewals SET provider = ?, price = ?, renew_date = ?, expire_date = ?, total_cost = ?, inspection_fee = 0 WHERE id = ?`,
+                    [vehicleData.act_provider || null, price, vehicleData.act_renew_date, vehicleData.act_expire || null, price, rows[0].id]
+                );
+            } else {
+                await pool.execute(
+                    `INSERT INTO vehicle_renewals (vehicle_id, type, provider, price, renew_date, expire_date, total_cost, inspection_fee) VALUES (?, 'act', ?, ?, ?, ?, ?, 0)`,
+                    [vehicleId, vehicleData.act_provider || null, price, vehicleData.act_renew_date, vehicleData.act_expire || null, price]
+                );
+            }
+        }
     }
 }
 

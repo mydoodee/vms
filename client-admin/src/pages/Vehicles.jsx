@@ -40,6 +40,7 @@ export default function Vehicles() {
   const [actProvider, setActProvider] = useState('');
   const [actPrice, setActPrice] = useState('0');
   const [actRenewDate, setActRenewDate] = useState('');
+  const [taxInspectionFee, setTaxInspectionFee] = useState('0');
   const [activeSubTab, setActiveSubTab] = useState('insurance'); // 'insurance' | 'tax' | 'act'
   const [status, setStatus] = useState('active');
   const [department, setDepartment] = useState('');
@@ -134,6 +135,7 @@ export default function Vehicles() {
     setActProvider('');
     setActPrice('0');
     setActRenewDate('');
+    setTaxInspectionFee('0');
     setActiveSubTab('insurance');
     setStatus('active');
     setDepartment(user?.department || '');
@@ -175,6 +177,7 @@ export default function Vehicles() {
     setActProvider(vehicle.act_provider || '');
     setActPrice(vehicle.act_price || '0');
     setActRenewDate(vehicle.act_renew_date ? vehicle.act_renew_date.split('T')[0] : '');
+    setTaxInspectionFee(vehicle.tax_inspection_fee ? String(vehicle.tax_inspection_fee) : '0');
     setActiveSubTab('insurance');
     setStatus(vehicle.status);
     setDepartment(vehicle.department || '');
@@ -284,6 +287,7 @@ export default function Vehicles() {
       act_provider: actProvider || null,
       act_price: parseFloat(actPrice) || 0,
       act_renew_date: actRenewDate || null,
+      tax_inspection_fee: parseFloat(taxInspectionFee) || 0,
       status,
       department,
       notes,
@@ -776,9 +780,13 @@ export default function Vehicles() {
                       <label className="form-label">ผู้ให้บริการ / บริษัทต่อภาษี</label>
                       <input type="text" className="form-input" placeholder="เช่น กรมการขนส่งทางบก" value={taxProvider} onChange={(e) => setTaxProvider(e.target.value)} />
                     </div>
-                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: 0 }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">ค่าภาษีประจำปี (บาท)</label>
                       <input type="number" className="form-input" placeholder="0.00" value={taxPrice} onChange={(e) => setTaxPrice(e.target.value)} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label">ค่าตรวจสภาพ (บาท)</label>
+                      <input type="number" className="form-input" placeholder="0.00" value={taxInspectionFee} onChange={(e) => setTaxInspectionFee(e.target.value)} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">วันที่ต่อภาษีล่าสุด</label>

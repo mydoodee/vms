@@ -189,7 +189,7 @@ export default function Renewals() {
         expire_date: expireDate || null,
         provider,
         price: parseFloat(price) || 0,
-        inspection_fee: parseFloat(inspectionFee) || 0,
+        inspection_fee: renewType === 'tax' ? (parseFloat(inspectionFee) || 0) : 0,
         service_fee: parseFloat(serviceFee) || 0,
         other_fee: parseFloat(otherFee) || 0,
         notes
@@ -298,7 +298,8 @@ export default function Renewals() {
   };
 
   const calcTotal = () => {
-    return ((parseFloat(price) || 0) + (parseFloat(inspectionFee) || 0) + (parseFloat(serviceFee) || 0) + (parseFloat(otherFee) || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+    const insp = renewType === 'tax' ? (parseFloat(inspectionFee) || 0) : 0;
+    return ((parseFloat(price) || 0) + insp + (parseFloat(serviceFee) || 0) + (parseFloat(otherFee) || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2 });
   };
 
   const fmtDate = (d) => formatThaiDate(d);
@@ -650,15 +651,11 @@ export default function Renewals() {
                                     <span style={{ fontWeight: 600 }}>{r.provider}</span>
                                   </div>
                                 )}
-                                {/* 2x2 grid breakdown */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginTop: '8px' }}>
+                                {/* 3-column or flex grid breakdown */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px 12px', marginTop: '8px' }}>
                                   <div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>เบี้ยประกัน</div>
                                     <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{fmtMoney(r.price)}</div>
-                                  </div>
-                                  <div>
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ค่าตรวจสภาพ</div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{fmtMoney(r.inspection_fee)}</div>
                                   </div>
                                   <div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ค่าดำเนินการ</div>
@@ -814,15 +811,11 @@ export default function Renewals() {
                                     <span style={{ fontWeight: 600 }}>{r.provider}</span>
                                   </div>
                                 )}
-                                {/* 2x2 grid breakdown */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', marginTop: '8px' }}>
+                                {/* 3-column breakdown */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px 12px', marginTop: '8px' }}>
                                   <div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ค่า พ.ร.บ.</div>
                                     <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{fmtMoney(r.price)}</div>
-                                  </div>
-                                  <div>
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ค่าตรวจสภาพ</div>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{fmtMoney(r.inspection_fee)}</div>
                                   </div>
                                   <div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>ค่าดำเนินการ</div>
@@ -1092,10 +1085,12 @@ export default function Renewals() {
             </label>
             <input type="number" step="0.01" className="form-input" value={price} onChange={(e) => setPrice(e.target.value)} />
           </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">ค่าตรวจสภาพ (บาท)</label>
-            <input type="number" step="0.01" className="form-input" value={inspectionFee} onChange={(e) => setInspectionFee(e.target.value)} />
-          </div>
+          {renewType === 'tax' && (
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">ค่าตรวจสภาพ (บาท)</label>
+              <input type="number" step="0.01" className="form-input" value={inspectionFee} onChange={(e) => setInspectionFee(e.target.value)} />
+            </div>
+          )}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">ค่าดำเนินการ (บาท)</label>
             <input type="number" step="0.01" className="form-input" value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} />

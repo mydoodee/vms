@@ -275,6 +275,7 @@ export default function VehicleDetail() {
                 <>
                   <InfoRow label="ผู้ดำเนินการภาษี" value={vehicle.tax_provider} />
                   <InfoRow label="ค่าภาษีประจำปี" value={vehicle.tax_price ? `฿${Number(vehicle.tax_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} highlight />
+                  <InfoRow label="ค่าตรวจสภาพ" value={vehicle.tax_inspection_fee ? `฿${Number(vehicle.tax_inspection_fee).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} />
                   <InfoRow label="ต่อภาษีล่าสุด" value={vehicle.tax_renew_date ? formatThaiDate(vehicle.tax_renew_date) : null} />
                   <InfoRow label="วันหมดอายุ" dateStr={vehicle.tax_expire} expiry={getExpiryStatus(vehicle.tax_expire)} />
                 </>
