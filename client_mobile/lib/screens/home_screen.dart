@@ -683,7 +683,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _tickets.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           return _buildTicketCard(_tickets[index]);
         },
@@ -699,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Center(
+        errorBuilder: (_, _, _) => Center(
           child: Text(
             _user?['fullname']?.substring(0, 1).toUpperCase() ?? 'U',
             style: TextStyle(
@@ -1068,7 +1068,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (num == null) return '0';
     final str = num.toString();
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    String Function(Match) mathFunc = (Match match) => '${match[1]},';
+    String mathFunc(Match match) => '${match[1]},';
     return str.replaceAllMapped(reg, mathFunc);
   }
 

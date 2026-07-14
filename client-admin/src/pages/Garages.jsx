@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IoAdd, IoCreate, IoTrash, IoBusinessOutline, IoShieldCheckmarkOutline } from 'react-icons/io5';
+import { LuPlus, LuPen, LuTrash2, LuBuilding2, LuShieldCheck } from 'react-icons/lu';
 import api from '../services/api';
 import DataTable from '../components/UI/DataTable';
 import StatusBadge from '../components/UI/StatusBadge';
@@ -19,13 +19,11 @@ export default function Garages() {
   const { user } = useAuth();
   const isManagerOrAdmin = ['admin', 'manager'].includes(user?.role);
   const isAdmin = user?.role === 'admin';
-  const { toast, confirm } = useToast();
-
-  // Modal states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const { toast } = useToast();
 
   // Form states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -36,28 +34,26 @@ export default function Garages() {
     try {
       const { data } = await api.get('/garages');
       setGarages(data.data);
-      setError('');
     } catch (err) {
       setError('ไม่สามารถเรียกข้อมูลอู่/ศูนย์บริการได้');
     } finally {
-      setLoading(false);
+      if (activeTab === 'garages') setLoading(false);
     }
   };
 
   const fetchInsuranceCompanies = async () => {
     try {
       const { data } = await api.get('/insurance-companies');
-      // Normalize database field is_active (1/0) into status ('active'/'inactive')
-      const normalized = data.data.map(item => ({
+      // Normalizing insurance properties to fit unified table
+      const formatted = (data.data || []).map(item => ({
         ...item,
-        status: item.is_active === 1 ? 'active' : 'inactive'
+        status: item.is_active ? 'active' : 'disabled' // standardizing status values
       }));
-      setInsuranceCompanies(normalized);
-      setError('');
+      setInsuranceCompanies(formatted);
     } catch (err) {
-      setError('ไม่สามารถเรียกข้อมูลบริษัทประกันได้');
+      setError('ไม่สามารถเรียกข้อมูลบริษัทประกันภัยได้');
     } finally {
-      setLoading(false);
+      if (activeTab === 'insurance') setLoading(false);
     }
   };
 
@@ -82,31 +78,25 @@ export default function Garages() {
 
   const openEditModal = (item) => {
     setSelectedItem(item);
-    setName(item.name);
+    setName(item.name || '');
     setPhone(item.phone || '');
     setAddress(item.address || '');
     setContactPerson(item.contact_person || '');
-    setStatus(item.status);
+    setStatus(item.status || 'active');
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id, itemName) => {
-    const isGarage = activeTab === 'garages';
-    const msg = isGarage 
-      ? `คุณแน่ใจว่าต้องการลบข้อมูลอู่/ศูนย์ซ่อม "${itemName}" หรือไม่?\n(การลบข้อมูลนี้จะไม่มีผลกระทบต่อประวัติการซ่อมที่มีอยู่เดิม)`
-      : `คุณแน่ใจว่าต้องการลบข้อมูลบริษัทประกันภัย "${itemName}" หรือไม่?`;
+  const handleDelete = async (id, nameStr) => {
+    if (!window.confirm(`คุณแน่ใจหรือไม่ที่จะลบ "${nameStr}" ?`)) return;
     
-    const ok = await confirm(msg, 'ยืนยันการลบข้อมูล');
-    if (!ok) return;
-
+    const endpoint = activeTab === 'garages' ? `/garages/${id}` : `/insurance-companies/${id}`;
     try {
-      const endpoint = isGarage ? `/garages/${id}` : `/insurance-companies/${id}`;
       await api.delete(endpoint);
-      toast.success(isGarage ? 'ลบข้อมูลอู่/ศูนย์ซ่อมสำเร็จ!' : 'ลบข้อมูลบริษัทประกันสำเร็จ!');
-      if (isGarage) fetchGarages();
+      toast.success('ลบข้อมูลเรียบร้อยแล้ว');
+      if (activeTab === 'garages') fetchGarages();
       else fetchInsuranceCompanies();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'ไม่สามารถลบข้อมูลได้');
+      toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
     }
   };
 
@@ -168,7 +158,7 @@ export default function Garages() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className="page-title">
             {activeTab === 'garages' ? 'จัดการอู่และศูนย์บริการซ่อม' : 'จัดการบริษัทประกันภัย'}
@@ -180,32 +170,32 @@ export default function Garages() {
           </p>
         </div>
         {isManagerOrAdmin && (
-          <NeonButton onClick={openAddModal} variant="primary" icon={<IoAdd size={18} />}>
+          <NeonButton onClick={openAddModal} variant="primary" icon={<LuPlus size={18} />}>
             {activeTab === 'garages' ? 'เพิ่มอู่/ศูนย์บริการ' : 'เพิ่มบริษัทประกัน'}
           </NeonButton>
         )}
       </div>
 
       {/* Tabs Menu */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: 'var(--space-md)' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-md)' }}>
         <button 
           onClick={() => setActiveTab('garages')}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '10px 20px',
+            padding: '8px 18px',
             borderRadius: '20px',
             border: activeTab === 'garages' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
-            background: activeTab === 'garages' ? 'var(--color-primary-subtle)' : 'rgba(255,255,255,0.02)',
+            background: activeTab === 'garages' ? 'var(--color-primary-subtle)' : '#ffffff',
             color: activeTab === 'garages' ? 'var(--color-primary)' : 'var(--text-secondary)',
             cursor: 'pointer',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             fontWeight: activeTab === 'garages' ? 700 : 500,
             transition: 'all var(--transition-fast)'
           }}
         >
-          <IoBusinessOutline size={18} />
+          <LuBuilding2 size={16} />
           <span>อู่ซ่อม</span>
         </button>
         <button 
@@ -214,18 +204,18 @@ export default function Garages() {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '10px 20px',
+            padding: '8px 18px',
             borderRadius: '20px',
             border: activeTab === 'insurance' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
-            background: activeTab === 'insurance' ? 'var(--color-primary-subtle)' : 'rgba(255,255,255,0.02)',
+            background: activeTab === 'insurance' ? 'var(--color-primary-subtle)' : '#ffffff',
             color: activeTab === 'insurance' ? 'var(--color-primary)' : 'var(--text-secondary)',
             cursor: 'pointer',
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             fontWeight: activeTab === 'insurance' ? 700 : 500,
             transition: 'all var(--transition-fast)'
           }}
         >
-          <IoShieldCheckmarkOutline size={18} />
+          <LuShieldCheck size={16} />
           <span>ประกัน</span>
         </button>
       </div>
@@ -239,23 +229,23 @@ export default function Garages() {
         searchPlaceholder={activeTab === 'garages' ? 'ค้นหาชื่ออู่, เบอร์โทร, ผู้ติดต่อ...' : 'ค้นหาบริษัทประกัน, เบอร์โทร, ผู้ติดต่อ...'}
         searchField="name"
         actions={isManagerOrAdmin ? (row) => (
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '4px' }}>
             <button
               onClick={() => openEditModal(row)}
               className="btn btn-ghost btn-sm"
-              style={{ display: 'inline-flex', padding: '6px' }}
+              style={{ display: 'inline-flex', padding: '6px', borderRadius: '8px' }}
               title="แก้ไขข้อมูล"
             >
-              <IoCreate size={16} />
+              <LuPen size={14} />
             </button>
             {isAdmin && (
               <button
                 onClick={() => handleDelete(row.id, row.name)}
                 className="btn btn-ghost btn-sm"
-                style={{ display: 'inline-flex', padding: '6px', color: 'var(--color-danger)' }}
+                style={{ display: 'inline-flex', padding: '6px', color: 'var(--color-danger)', borderRadius: '8px' }}
                 title="ลบข้อมูล"
               >
-                <IoTrash size={16} />
+                <LuTrash2 size={14} />
               </button>
             )}
           </div>
@@ -301,21 +291,20 @@ export default function Garages() {
             <input
               type="text"
               className="form-input"
-              placeholder={activeTab === 'garages' ? 'กรอกชื่อผู้ประสานงานของอู่' : 'กรอกชื่อตัวแทนประสานงานของบริษัทประกัน'}
+              placeholder="กรอกชื่อผู้ติดต่อ"
               value={contactPerson}
               onChange={(e) => setContactPerson(e.target.value)}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">ที่อยู่ / พิกัดที่ตั้ง</label>
+            <label className="form-label">ที่อยู่ / พิกัดสถานที่</label>
             <textarea
               className="form-textarea"
-              rows="3"
-              placeholder={activeTab === 'garages' ? 'กรอกข้อมูลที่อยู่อู่ซ่อมบำรุง' : 'กรอกข้อมูลที่อยู่สำนักงานบริษัทประกัน'}
+              placeholder="กรอกรายละเอียดที่อยู่"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-            ></textarea>
+            />
           </div>
 
           <div className="form-group">
@@ -325,13 +314,13 @@ export default function Garages() {
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
-              <option value="active">เปิดใช้งาน (ใช้งานได้ปกติ)</option>
-              <option value="inactive">ระงับการใช้งาน</option>
+              <option value="active">เปิดใช้งาน (Active)</option>
+              <option value="disabled">ระงับการใช้งาน (Disabled)</option>
             </select>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: 'var(--space-xl)' }}>
-            <NeonButton type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+            <NeonButton variant="ghost" onClick={() => setIsModalOpen(false)}>
               ยกเลิก
             </NeonButton>
             <NeonButton type="submit" variant="primary">

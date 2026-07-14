@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { IoArrowBack } from 'react-icons/io5';
+import { LuArrowLeft } from 'react-icons/lu';
 import api from '../services/api';
 import GlassCard from '../components/UI/GlassCard';
 import NeonButton from '../components/UI/NeonButton';
@@ -95,7 +95,7 @@ export default function CreateTicket() {
   return (
     <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div className="page-header style-back" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <NeonButton variant="ghost" size="sm" onClick={() => navigate(-1)} icon={<IoArrowBack />}>
+        <NeonButton variant="ghost" size="sm" onClick={() => navigate(-1)} icon={<LuArrowLeft />}>
           กลับ
         </NeonButton>
         <div>

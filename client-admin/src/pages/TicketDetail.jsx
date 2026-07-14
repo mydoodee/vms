@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { IoArrowBack, IoBuildOutline, IoCashOutline, IoDocumentAttachOutline, IoDownloadOutline, IoTrashOutline, IoBusinessOutline } from 'react-icons/io5';
+import { LuArrowLeft, LuWrench, LuCircleDollarSign, LuFileText, LuDownload, LuTrash2, LuBuilding2 } from 'react-icons/lu';
 import api from '../services/api';
 import GlassCard from '../components/UI/GlassCard';
 import StatusBadge from '../components/UI/StatusBadge';
@@ -175,7 +175,7 @@ export default function TicketDetail() {
   return (
     <div className="animate-fade-in">
       <div className="page-header" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <NeonButton variant="ghost" size="sm" onClick={() => navigate('/tickets')} icon={<IoArrowBack />}>
+        <NeonButton variant="ghost" size="sm" onClick={() => navigate('/tickets')} icon={<LuArrowLeft />}>
           กลับ
         </NeonButton>
         <div>
@@ -188,7 +188,7 @@ export default function TicketDetail() {
         {/* Main Details Panel */}
         <GlassCard style={{ gridColumn: 'span 2' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyStyle: 'flex-start', gap: '10px', borderBottom: '1px solid var(--glass-border)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-            <IoBuildOutline size={24} style={{ color: 'var(--color-primary)' }} />
+            <LuWrench size={24} style={{ color: 'var(--color-primary)' }} />
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>รายละเอียดอาการและความเสียหาย</h3>
           </div>
 
@@ -246,7 +246,7 @@ export default function TicketDetail() {
             {/* Garage info */}
             <hr style={{ border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', margin: '5px 0' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <IoBusinessOutline size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+              <LuBuilding2 size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>อู่ / ศูนย์ซ่อมที่กำหนด</span>
             </div>
             {ticket.registered_garage_name ? (
@@ -307,7 +307,7 @@ export default function TicketDetail() {
           {isWorkflowAllowed && (
             <GlassCard>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px', marginBottom: '14px' }}>
-                <IoBusinessOutline size={20} style={{ color: 'var(--color-accent)' }} />
+                <LuBuilding2 size={20} style={{ color: 'var(--color-accent)' }} />
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>กำหนดอู่ / ศูนย์ซ่อม</span>
               </div>
               <select
@@ -333,7 +333,7 @@ export default function TicketDetail() {
           {/* Costs Box */}
           <GlassCard>
             <div style={{ display: 'flex', alignItems: 'center', justifyStyle: 'flex-start', gap: '8px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px', marginBottom: '15px' }}>
-              <IoCashOutline size={20} style={{ color: 'var(--color-accent)' }} />
+              <LuCircleDollarSign size={20} style={{ color: 'var(--color-accent)' }} />
               <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>ข้อมูลค่าใช้จ่าย</span>
             </div>
 
@@ -380,7 +380,7 @@ export default function TicketDetail() {
       {/* Attachments Section */}
       <GlassCard>
         <div style={{ display: 'flex', alignItems: 'center', justifyStyle: 'flex-start', gap: '10px', borderBottom: '1px solid var(--glass-border)', paddingBottom: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-          <IoDocumentAttachOutline size={24} style={{ color: 'var(--color-accent)' }} />
+          <LuFileText size={24} style={{ color: 'var(--color-accent)' }} />
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>ไฟล์เอกสาร / รูปภาพแนบ</h3>
         </div>
 
@@ -410,7 +410,7 @@ export default function TicketDetail() {
                     </div>
                   ) : (
                     <div style={{ height: '140px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-                      <IoDocumentAttachOutline size={40} />
+                      <LuFileText size={40} />
                       <span style={{ fontSize: '0.75rem', width: '80%', textAlign: 'center', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                         {file.original_name}
                       </span>
@@ -424,14 +424,14 @@ export default function TicketDetail() {
                       rel="noreferrer"
                       style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-primary)' }}
                     >
-                      <IoDownloadOutline size={16} /> โหลด
+                      <LuDownload size={16} /> โหลด
                     </a>
                     {user?.id === file.uploaded_by && (
                       <button 
                         onClick={() => handleDeleteAttachment(file.id)}
                         style={{ background: 'none', border: 'none', color: 'var(--color-danger)', cursor: 'pointer' }}
                       >
-                        <IoTrashOutline size={16} />
+                        <LuTrash2 size={16} />
                       </button>
                     )}
                   </div>

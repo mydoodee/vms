@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('vms_token');
       localStorage.removeItem('vms_user');
-      const loginPath = import.meta.env.DEV ? '/login' : '/vms/login';
+      const loginPath = '/vms/login';
       if (window.location.pathname !== loginPath) {
         window.location.href = loginPath;
       }

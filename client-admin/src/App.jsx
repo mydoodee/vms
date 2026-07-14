@@ -17,6 +17,7 @@ import UsersPage from './pages/Users';
 import Reports from './pages/Reports';
 import Garages from './pages/Garages';
 import Renewals from './pages/Renewals';
+import Settings from './pages/Settings';
 
 export default function App() {
   return (
@@ -128,11 +129,11 @@ export default function App() {
           />
 
           <Route
-            path="/users"
+            path="/settings"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute>
                 <MainLayout>
-                  <UsersPage />
+                  <Settings />
                 </MainLayout>
               </ProtectedRoute>
             }

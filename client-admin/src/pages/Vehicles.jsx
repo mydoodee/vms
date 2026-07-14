@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { IoAdd, IoEye, IoTrash, IoCreate, IoCarOutline, IoCalendarOutline, IoDocumentAttachOutline, IoFileTrayFullOutline } from 'react-icons/io5';
+import { LuPlus, LuEye, LuTrash2, LuPen, LuCar, LuCalendar, LuFileText, LuBriefcase, LuImage, LuFileStack, LuPrinter } from 'react-icons/lu';
 import api from '../services/api';
 import DataTable from '../components/UI/DataTable';
 import StatusBadge from '../components/UI/StatusBadge';
@@ -20,6 +20,225 @@ export default function Vehicles() {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const printVehicleReport = async (vehicleId) => {
+    try {
+      toast.info('กำลังสร้างไฟล์ PDF รายงานรถยนต์...');
+      const { data } = await api.get(`/vehicles/${vehicleId}`);
+      const v = data.data;
+      
+      let imgs = [];
+      if (v.image_url) {
+        try { imgs = JSON.parse(v.image_url); } catch { imgs = [v.image_url]; }
+      }
+      const mainImage = imgs[0] ? getFileUrl(imgs[0]) : '';
+      
+      const loadHtml2Pdf = () => {
+        return new Promise((resolve) => {
+          if (window.html2pdf) {
+            resolve(window.html2pdf);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          script.onload = () => resolve(window.html2pdf);
+          document.body.appendChild(script);
+        });
+      };
+      
+      const html2pdf = await loadHtml2Pdf();
+      
+      const getExpLabel = (dateStr) => {
+        if (!dateStr) return '-';
+        const today = new Date(); today.setHours(0,0,0,0);
+        const exp = new Date(dateStr); exp.setHours(0,0,0,0);
+        const days = Math.round((exp - today) / 86400000);
+        if (days < 0) return 'หมดอายุแล้ว';
+        return `เหลือ ${days} วัน`;
+      };
+      
+      const formatThaiDateShort = (dateString) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const months = [
+          'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+          'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        ];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear() + 543}`;
+      };
+
+      const getSeverityLabel = (sev) => {
+        const labels = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
+        return labels[sev] || sev;
+      };
+
+      // Split plate_number: e.g. "ฮร 9024 กรุงเทพมหานคร" => plate="ฮร 9024", province="กรุงเทพมหานคร"
+      const parsePlate = (plateStr) => {
+        if (!plateStr) return { plate: '-', province: '' };
+        const match = plateStr.match(/^(.+\d+)\s+(.+)$/);
+        if (match) return { plate: match[1].trim(), province: match[2].trim() };
+        return { plate: plateStr, province: '' };
+      };
+      const { plate: plateDisplay, province: plateProvince } = parsePlate(v.plate_number);
+
+      const element = document.createElement('div');
+      element.style.padding = '20px';
+      element.style.background = '#ffffff';
+      element.style.width = '750px';
+
+      element.innerHTML = `
+        <div style="font-family: 'Sarabun', sans-serif; color: #1e293b; font-size: 13px; line-height: 1.5; padding: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px;">
+            <div>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #2563eb;">รายงานข้อมูลยานพาหนะ</h1>
+              <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b;">ระบบจัดการซ่อมบำรุงและประวัติรถยนต์ SPK VMS</p>
+            </div>
+            <div style="border: 3px solid #1e293b; border-radius: 8px; padding: 6px 18px; font-size: 16px; font-weight: 800; color: #1e293b; text-align: center; background: #f8fafc;">
+              ${plateDisplay}
+              ${plateProvince ? `<span style="font-size: 9px; color: #64748b; display: block; margin-top: 2px; font-weight: 600;">${plateProvince}</span>` : ''}
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 24px; margin-bottom: 15px;">
+            <div style="flex: 1.3;">
+              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">ข้อมูลยานพาหนะพื้นฐาน</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;">
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ยี่ห้อ / รุ่น</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.brand} ${v.model || '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ปีจดทะเบียน / สี</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.year || '-'} / ${v.color || '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ประเภทเชื้อเพลิง</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${
+                    v.fuel_type === 'gasoline' ? 'เบนซิน' :
+                    v.fuel_type === 'diesel' ? 'ดีเซล' :
+                    v.fuel_type === 'electric' ? 'ไฟฟ้า' :
+                    v.fuel_type === 'hybrid' ? 'ไฮบริด' : v.fuel_type || '-'
+                  }</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ระยะไมล์ปัจจุบัน</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${Number(v.mileage || 0).toLocaleString()} km</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">เลขตัวถัง (VIN)</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a; font-family: monospace;">${v.vin || '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">เลขเครื่องยนต์</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a; font-family: monospace;">${v.engine_number || '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">แผนกสังกัด / ขึ้นทะเบียน</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.department || '-'} / ${v.work_registration || '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ผู้ขับขี่ / ผู้ดูแล</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.driver_name || '-'}</span>
+                </div>
+              </div>
+
+              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 15px 0 10px 0;">รายละเอียดประกันภัย ภาษี และ พ.ร.บ.</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;">
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">บริษัทประกันภัย / ระดับ</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.insurance_company || '-'} ${v.insurance_level ? `(ชั้น ${v.insurance_level})` : ''}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">วันหมดอายุประกัน</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.insurance_expire ? formatThaiDateShort(v.insurance_expire) : '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ผู้ดำเนินการภาษี / ค่าภาษี</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.tax_provider || '-'} ${v.tax_price ? `(฿${Number(v.tax_price).toLocaleString()})` : ''}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">วันหมดอายุภาษี</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.tax_expire ? formatThaiDateShort(v.tax_expire) : '-'}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">ผู้ให้บริการ พ.ร.บ. / ราคา</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.act_provider || '-'} ${v.act_price ? `(฿${Number(v.act_price).toLocaleString()})` : ''}</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 9px; color: #64748b; font-weight: 600;">วันหมดอายุ พ.ร.บ.</span>
+                  <span style="font-size: 12px; font-weight: 700; color: #0f172a;">${v.act_expire ? formatThaiDateShort(v.act_expire) : '-'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex: 0.7;">
+              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">รูปรถยนต์</div>
+              <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; height: 140px; background: #f8fafc; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                ${mainImage ? `<img src="${mainImage}" style="width: 100%; height: 100%; object-fit: cover;" />` : '<span style="color:#94a3b8; font-size:10px;">ไม่มีรูปรถในระบบ</span>'}
+              </div>
+              
+              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">สถานะวันหมดอายุการต่ออายุ</div>
+              <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 4px 0; font-weight:600; color:#475569;">🛡️ ประกันภัย:</td>
+                  <td style="padding: 4px 0; text-align:right; font-weight:700;">${getExpLabel(v.insurance_expire)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0; font-weight:600; color:#475569;">📄 ภาษีประจำปี:</td>
+                  <td style="padding: 4px 0; text-align:right; font-weight:700;">${getExpLabel(v.tax_expire)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0; font-weight:600; color:#475569;">⚡ พ.ร.บ.:</td>
+                  <td style="padding: 4px 0; text-align:right; font-weight:700;">${getExpLabel(v.act_expire)}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 15px 0 6px 0;">ประวัติการซ่อมบำรุงล่าสุด (5 รายการล่าสุด)</div>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+            <thead>
+              <tr style="background: #f8fafc; border-bottom: 1.5px solid #cbd5e1;">
+                <th style="width: 15%; text-align: left; padding: 6px 8px; font-size: 10px; color: #475569; font-weight: 700;">เลขที่ใบซ่อม</th>
+                <th style="width: 50%; text-align: left; padding: 6px 8px; font-size: 10px; color: #475569; font-weight: 700;">รายการแจ้งซ่อม / หัวข้อ</th>
+                <th style="width: 15%; text-align: left; padding: 6px 8px; font-size: 10px; color: #475569; font-weight: 700;">ความรุนแรง</th>
+                <th style="width: 20%; text-align: left; padding: 6px 8px; font-size: 10px; color: #475569; font-weight: 700;">วันที่บันทึก</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${v.repair_history && v.repair_history.length > 0 ? v.repair_history.slice(0, 5).map(t => `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                  <td style="font-weight: 700; color: #2563eb; padding: 6px 8px; font-size: 11px;">${t.ticket_id}</td>
+                  <td style="padding: 6px 8px; font-size: 11px;">${t.title}</td>
+                  <td style="padding: 6px 8px; font-size: 11px;">${getSeverityLabel(t.severity)}</td>
+                  <td style="padding: 6px 8px; font-size: 11px;">${formatThaiDateShort(t.created_at)}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding: 12px 0;">ไม่มีประวัติการแจ้งซ่อม</td></tr>'}
+            </tbody>
+          </table>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 30px; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8;">
+            <span>เอกสารฉบับนี้พิมพ์จากระบบ SPK VMS เมื่อวันที่ ${formatThaiDateShort(new Date())}</span>
+            <span>หน้า 1 จาก 1</span>
+          </div>
+        </div>
+      `;
+      const opt = {
+        margin:       10,
+        filename:     `vehicle-report-${v.plate_number}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast.success('ดาวน์โหลดไฟล์ PDF สำเร็จ!');
+    } catch (err) {
+      console.error(err);
+      toast.error('ไม่สามารถดาวน์โหลดไฟล์ PDF ได้');
+    }
+  };
 
   // Form states
   const [plateNumber, setPlateNumber] = useState('');
@@ -49,7 +268,6 @@ export default function Vehicles() {
   const [newFiles, setNewFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
@@ -325,15 +543,20 @@ export default function Vehicles() {
     const exp = new Date(dateStr); exp.setHours(0,0,0,0);
     const days = Math.round((exp - today) / 86400000);
     let color, bg, text;
-    if (days < 0) { color = '#ff5252'; bg = 'rgba(255,82,82,0.12)'; text = 'หมดอายุแล้ว'; }
-    else if (days <= 30) { color = '#ffab40'; bg = 'rgba(255,171,64,0.12)'; text = `${days}ว.`; }
-    else if (days <= 90) { color = '#ffd740'; bg = 'rgba(255,215,64,0.10)'; text = `${days}ว.`; }
-    else { color = '#69f0ae'; bg = 'rgba(105,240,174,0.10)'; text = `${days}ว.`; }
+    if (days < 0) { 
+      color = '#dc2626'; bg = 'rgba(220,38,38,0.10)'; text = 'หมดอายุแล้ว'; 
+    } else if (days <= 30) { 
+      color = '#ea580c'; bg = 'rgba(234,88,12,0.10)'; text = `${days}ว.`; 
+    } else if (days <= 90) { 
+      color = '#b45309'; bg = 'rgba(180,83,9,0.08)'; text = `${days}ว.`; 
+    } else { 
+      color = '#047857'; bg = 'rgba(4,120,87,0.08)'; text = `${days}ว.`; 
+    }
     const d = new Date(dateStr);
     const fmt = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()+543}`;
     return (
       <div style={{ display:'flex', flexDirection:'column', gap:'2px' }}>
-        <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:bg, padding:'1px 6px', borderRadius:'4px', display:'inline-block' }}>{text}</span>
+        <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:bg, padding:'1px 6px', borderRadius:'4px', display:'inline-block', border: `1px solid ${color}22` }}>{text}</span>
         <span style={{ fontSize:'0.68rem', color:'var(--text-muted)' }}>{fmt}</span>
       </div>
     );
@@ -411,7 +634,7 @@ export default function Vehicles() {
           <p className="page-subtitle">ทะเบียน ทราบสถานะการใช้งาน แผนกที่จัดสรร และบันทึกประวัติ</p>
         </div>
         {canEdit && (
-          <NeonButton onClick={openAddModal} variant="primary" icon={<IoAdd />}>
+          <NeonButton onClick={openAddModal} variant="primary" icon={<LuPlus />}>
             เพิ่มรถยนต์
           </NeonButton>
         )}
@@ -427,11 +650,19 @@ export default function Vehicles() {
         loading={loading}
         actions={(row) => (
           <div style={{ display: 'flex', gap: '4px' }}>
-            <NeonButton size="sm" variant="ghost" icon={<IoEye />} onClick={() => navigate(`/vehicles/${row.id}`)} title="ดูรายละเอียด" style={{ padding: '6px' }} />
+            <NeonButton size="sm" variant="ghost" icon={<LuEye size={14} />} onClick={() => navigate(`/vehicles/${row.id}`)} title="ดูรายละเอียด" style={{ padding: '6px' }} />
+            <NeonButton size="sm" variant="ghost" icon={<LuPrinter size={14} />} onClick={() => printVehicleReport(row.id)} title="พิมพ์รายละเอียด (PDF)" style={{ padding: '6px' }} />
             {canEdit && (
               <>
-                <NeonButton size="sm" variant="ghost" icon={<IoCreate />} onClick={() => openEditModal(row)} title="แก้ไข" style={{ padding: '6px' }} />
-                <NeonButton size="sm" variant="danger" icon={<IoTrash />} onClick={() => handleDelete(row.id)} title="ลบ" style={{ padding: '6px' }} />
+                <NeonButton size="sm" variant="ghost" icon={<LuPen size={14} />} onClick={() => openEditModal(row)} title="แก้ไข" style={{ padding: '6px' }} />
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ display: 'inline-flex', padding: '6px', color: 'var(--color-danger)', borderRadius: '8px' }}
+                  title="ลบรถยนต์"
+                >
+                  <LuTrash2 size={14} />
+                </button>
               </>
             )}
           </div>
@@ -443,6 +674,7 @@ export default function Vehicles() {
         isOpen={isModalOpen} 
         onClose={() => !saving && setIsModalOpen(false)} 
         title={editingVehicle ? 'แก้ไขข้อมูลรถยนต์' : 'เพิ่มข้อมูลรถยนต์'}
+        size="lg"
         footer={
           <>
             <NeonButton variant="ghost" onClick={() => setIsModalOpen(false)} disabled={saving}>ยกเลิก</NeonButton>
@@ -471,145 +703,93 @@ export default function Vehicles() {
          <form onSubmit={handleSubmit} className="grid grid-2" style={{ gap: 'var(--space-md)' }}>
           {/* Form Tabs */}
           <div style={{
+            gridColumn: 'span 2',
             display: 'flex',
-            gap: '8px',
-            borderBottom: '1px solid var(--glass-border)',
-            paddingBottom: '12px',
-            marginBottom: '4px',
-            gridColumn: 'span 2'
+            gap: '6px',
+            background: 'rgba(79,70,229,0.04)',
+            padding: '6px',
+            borderRadius: '14px',
+            border: '1px solid var(--glass-border)',
+            marginBottom: '4px'
           }}>
-            <button
-              type="button"
-              onClick={() => setActiveFormTab('specs')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: activeFormTab === 'specs' ? '1px solid var(--color-primary)' : '1px solid transparent',
-                background: activeFormTab === 'specs' ? 'var(--color-primary-subtle)' : 'transparent',
-                color: activeFormTab === 'specs' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontWeight: activeFormTab === 'specs' ? 700 : 500,
-                fontSize: '0.85rem',
-                transition: 'all var(--transition-fast)'
-              }}
-            >
-              <IoCarOutline size={18} />
-              <span>สเปครถยนต์</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFormTab('insurance')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: activeFormTab === 'insurance' ? '1px solid var(--color-primary)' : '1px solid transparent',
-                background: activeFormTab === 'insurance' ? 'var(--color-primary-subtle)' : 'transparent',
-                color: activeFormTab === 'insurance' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontWeight: activeFormTab === 'insurance' ? 700 : 500,
-                fontSize: '0.85rem',
-                transition: 'all var(--transition-fast)'
-              }}
-            >
-              <IoCalendarOutline size={18} />
-              <span>ประกัน / ภาษี / พ.ร.บ.</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFormTab('docs')}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: activeFormTab === 'docs' ? '1px solid var(--color-primary)' : '1px solid transparent',
-                background: activeFormTab === 'docs' ? 'var(--color-primary-subtle)' : 'transparent',
-                color: activeFormTab === 'docs' ? 'var(--color-primary)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontWeight: activeFormTab === 'docs' ? 700 : 500,
-                fontSize: '0.85rem',
-                transition: 'all var(--transition-fast)'
-              }}
-            >
-              <IoDocumentAttachOutline size={18} />
-              <span>รูปภาพ & เอกสาร</span>
-            </button>
+            {[
+              { key: 'specs', icon: <LuCar size={15} />, label: 'สเปครถยนต์', step: '1' },
+              { key: 'insurance', icon: <LuCalendar size={15} />, label: 'ประกัน / ภาษี', step: '2' },
+              { key: 'docs', icon: <LuFileText size={15} />, label: 'รูป & เอกสาร', step: '3' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveFormTab(tab.key)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '7px',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: activeFormTab === tab.key
+                    ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)'
+                    : 'transparent',
+                  color: activeFormTab === tab.key ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: activeFormTab === tab.key ? 700 : 500,
+                  fontSize: '0.83rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeFormTab === tab.key ? '0 4px 12px rgba(79,70,229,0.25)' : 'none',
+                }}
+              >
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px', height: '20px',
+                  borderRadius: '50%',
+                  background: activeFormTab === tab.key ? 'rgba(255,255,255,0.2)' : 'rgba(79,70,229,0.08)',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  color: activeFormTab === tab.key ? '#fff' : 'var(--color-primary)',
+                  flexShrink: 0
+                }}>{tab.step}</span>
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </div>
 
-          {/* TAB 1: Specs */}
           {activeFormTab === 'specs' && (
             <>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">เลขทะเบียน *</label>
-                <input type="text" required className="form-input" value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} />
+              {/* Section: ข้อมูลหลัก */}
+              <div style={{ gridColumn: 'span 2', marginBottom: '-4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ width: '3px', height: '16px', background: 'linear-gradient(180deg, var(--color-primary), var(--color-accent))', borderRadius: '2px' }} />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ข้อมูลพื้นฐาน</span>
+                </div>
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">ยี่ห้อ *</label>
-                <input type="text" required className="form-input" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                <label className="form-label">🔖 เลขทะเบียน *</label>
+                <input type="text" required className="form-input" placeholder="เช่น กก 1234 กทม" value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">รุ่น</label>
-                <input type="text" className="form-input" value={model} onChange={(e) => setModel(e.target.value)} />
+                <label className="form-label">🚗 ยี่ห้อ *</label>
+                <input type="text" required className="form-input" placeholder="เช่น Toyota, Honda" value={brand} onChange={(e) => setBrand(e.target.value)} />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">ปีที่จดทะเบียน</label>
-                <input type="number" className="form-input" value={year} onChange={(e) => setYear(e.target.value)} />
+                <label className="form-label">📦 รุ่น</label>
+                <input type="text" className="form-input" placeholder="เช่น Fortuner, Civic" value={model} onChange={(e) => setModel(e.target.value)} />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">สี</label>
-                <input type="text" className="form-input" value={color} onChange={(e) => setColor(e.target.value)} />
+                <label className="form-label">📅 ปีที่จดทะเบียน</label>
+                <input type="number" className="form-input" placeholder="เช่น 2020" value={year} onChange={(e) => setYear(e.target.value)} />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">แผนกที่สังกัด</label>
-                <input type="text" className="form-input" value={department} onChange={(e) => setDepartment(e.target.value)} />
+                <label className="form-label">🎨 สี</label>
+                <input type="text" className="form-input" placeholder="เช่น ขาว, ดำ, เงิน" value={color} onChange={(e) => setColor(e.target.value)} />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">ผู้ใช้งานประจำรถ (คนขับ)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="กรอกชื่อผู้ใช้งานประจำรถ หรือคนขับ" 
-                  value={assignedDriver} 
-                  onChange={(e) => setAssignedDriver(e.target.value)} 
-                />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">ขึ้นทะเบียนงาน</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="ระบุการขึ้นทะเบียนงาน" 
-                  value={workRegistration} 
-                  onChange={(e) => setWorkRegistration(e.target.value)} 
-                />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">เลขเครื่องยนต์</label>
-                <input type="text" className="form-input" value={engineNumber} onChange={(e) => setEngineNumber(e.target.value)} />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">เลขตัวถัง (VIN)</label>
-                <input type="text" className="form-input" value={vin} onChange={(e) => setVin(e.target.value)} />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">เลขไมล์ปัจจุบัน (km)</label>
-                <input type="number" className="form-input" value={mileage} onChange={(e) => setMileage(e.target.value)} />
-              </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">ประเภทเชื้อเพลิง</label>
+                <label className="form-label">⛽ ประเภทเชื้อเพลิง</label>
                 <select className="form-select" value={fuelType} onChange={(e) => setFuelType(e.target.value)}>
                   <option value="gasoline">เบนซิน</option>
                   <option value="diesel">ดีเซล</option>
@@ -618,18 +798,58 @@ export default function Vehicles() {
                   <option value="lpg">LPG</option>
                 </select>
               </div>
+
+              {/* Section: การใช้งาน */}
+              <div style={{ gridColumn: 'span 2', marginTop: '4px', marginBottom: '-4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingTop: '8px', borderTop: '1px solid var(--glass-border)' }}>
+                  <div style={{ width: '3px', height: '16px', background: 'linear-gradient(180deg, #059669, #047857)', borderRadius: '2px' }} />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-success)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>การใช้งานและสถานะ</span>
+                </div>
+              </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">สถานะรถยนต์</label>
+                <label className="form-label">👤 ผู้ใช้งานประจำ / คนขับ</label>
+                <input type="text" className="form-input" placeholder="กรอกชื่อผู้ใช้งานประจำรถ" value={assignedDriver} onChange={(e) => setAssignedDriver(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">🏢 แผนกที่สังกัด</label>
+                <input type="text" className="form-input" placeholder="เช่น แผนกขนส่ง" value={department} onChange={(e) => setDepartment(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">📏 เลขไมล์ปัจจุบัน (km)</label>
+                <input type="number" className="form-input" placeholder="0" value={mileage} onChange={(e) => setMileage(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">🔧 ขึ้นทะเบียนงาน</label>
+                <input type="text" className="form-input" placeholder="ระบุการขึ้นทะเบียนงาน" value={workRegistration} onChange={(e) => setWorkRegistration(e.target.value)} />
+              </div>
+
+              {/* Section: เทคนิค */}
+              <div style={{ gridColumn: 'span 2', marginTop: '4px', marginBottom: '-4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingTop: '8px', borderTop: '1px solid var(--glass-border)' }}>
+                  <div style={{ width: '3px', height: '16px', background: 'linear-gradient(180deg, #7c3aed, #4f46e5)', borderRadius: '2px' }} />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ข้อมูลทางเทคนิค</span>
+                </div>
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">⚙️ เลขเครื่องยนต์</label>
+                <input type="text" className="form-input" placeholder="Engine Number" value={engineNumber} onChange={(e) => setEngineNumber(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">🔢 เลขตัวถัง (VIN)</label>
+                <input type="text" className="form-input" placeholder="Vehicle Identification Number" value={vin} onChange={(e) => setVin(e.target.value)} />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">📋 สถานะรถยนต์</label>
                 <select className="form-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="active">พร้อมใช้งาน (Active)</option>
-                  <option value="maintenance">กำลังซ่อม (Maintenance)</option>
-                  <option value="disabled">งดใช้งาน (Disabled)</option>
-                  <option value="sold">จำหน่ายออก (Sold)</option>
+                  <option value="active">✅ พร้อมใช้งาน</option>
+                  <option value="maintenance">🔧 กำลังซ่อม</option>
+                  <option value="disabled">⛔ งดใช้งาน</option>
+                  <option value="sold">💰 จำหน่ายออก</option>
                 </select>
               </div>
-              <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: 0 }}>
-                <label className="form-label">หมายเหตุเพิ่มเติม</label>
-                <textarea className="form-textarea" rows="2" value={notes} onChange={(e) => setNotes(e.target.value)}></textarea>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">📝 หมายเหตุ</label>
+                <input type="text" className="form-input" placeholder="หมายเหตุเพิ่มเติม" value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </>
           )}
@@ -834,7 +1054,7 @@ export default function Vehicles() {
                 padding: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <IoCarOutline size={18} style={{ color: 'var(--color-primary)' }} />
+                  <LuImage size={18} style={{ color: 'var(--color-primary)' }} />
                   <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>รูปถ่ายรถยนต์</span>
                 </div>
                 
@@ -882,7 +1102,7 @@ export default function Vehicles() {
                 padding: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <IoDocumentAttachOutline size={18} style={{ color: 'var(--color-accent)' }} />
+                  <LuFileText size={18} style={{ color: 'var(--color-accent)' }} />
                   <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>เอกสารเกี่ยวกับรถ (เช่น สัญญาซื้อขาย, เล่มทะเบียน, พ.ร.บ.)</span>
                 </div>
 
@@ -893,7 +1113,7 @@ export default function Vehicles() {
                     return (
                       <div key={`doc-${idx}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', borderRadius: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                          <IoFileTrayFullOutline size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                          <LuFileStack size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
                           <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }} title={fileName}>{fileName}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -907,7 +1127,7 @@ export default function Vehicles() {
                   {newDocFiles.map((file, idx) => (
                     <div key={`newdoc-${idx}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(0,178,255,0.03)', border: '1px solid var(--color-primary-dim)', borderRadius: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                        <IoFileTrayFullOutline size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+                        <LuFileStack size={16} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
                         <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>{file.name}</span>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
                       </div>

@@ -379,7 +379,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               else
                 DropdownButtonFormField<int>(
                   dropdownColor: cardColor,
-                  value: _selectedGarageId,
+                  initialValue: _selectedGarageId,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     filled: true,

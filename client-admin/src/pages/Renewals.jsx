@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IoAdd, IoChevronDown, IoChevronForward, IoTrash, IoShieldCheckmarkOutline, IoDocumentTextOutline, IoCreate } from 'react-icons/io5';
+import { LuPlus, LuChevronDown, LuChevronRight, LuTrash2, LuShieldCheck, LuFileText, LuPen } from 'react-icons/lu';
 import api from '../services/api';
 import GlassCard from '../components/UI/GlassCard';
 import NeonButton from '../components/UI/NeonButton';
@@ -433,7 +433,7 @@ export default function Renewals() {
           }}
           title="แก้ไขข้อมูล"
         >
-          <IoCreate size={14} />
+          <LuPen size={14} />
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); handleDelete(r.id, vid); }}
@@ -444,7 +444,7 @@ export default function Renewals() {
           }}
           title="ลบรายการ"
         >
-          <IoTrash size={14} />
+          <LuTrash2 size={14} />
         </button>
       </div>
     );
@@ -460,7 +460,7 @@ export default function Renewals() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>จัดการประวัติการต่ออายุประกันภัยและภาษีรถยนต์</p>
         </div>
         <NeonButton onClick={() => openAddModal(null, 'insurance')}>
-          <IoAdd size={18} style={{ marginRight: '6px' }} /> บันทึกการต่ออายุ
+          <LuPlus size={18} style={{ marginRight: '6px' }} /> บันทึกการต่ออายุ
         </NeonButton>
       </div>
 
@@ -482,7 +482,7 @@ export default function Renewals() {
             >
               {/* Expand icon */}
               <div style={{ color: 'var(--text-muted)', transition: 'transform 0.2s', transform: expandedId === v.id ? 'rotate(0)' : 'rotate(0)' }}>
-                {expandedId === v.id ? <IoChevronDown size={20} /> : <IoChevronForward size={20} />}
+                {expandedId === v.id ? <LuChevronDown size={20} /> : <LuChevronRight size={20} />}
               </div>
 
               {/* Clickable Vehicle Wrapper */}
@@ -587,7 +587,7 @@ export default function Renewals() {
                   style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                   onClick={(e) => { e.stopPropagation(); openAddModal(v.id); }}
                 >
-                  <IoAdd size={16} /> ต่ออายุ
+                  <LuPlus size={16} /> ต่ออายุ
                 </NeonButton>
               </div>
             </div>
@@ -596,8 +596,8 @@ export default function Renewals() {
             {expandedId === v.id && (
               <div style={{
                 borderTop: '1px solid var(--glass-border)',
-                padding: '12px 20px',
-                background: 'rgba(0,0,0,0.12)'
+                padding: '16px 20px',
+                background: '#f8fafc'
               }}>
                 {loadingRenewals ? (
                   <div className="text-center py-md"><div className="spinner" /></div>
@@ -614,32 +614,32 @@ export default function Renewals() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {vehicleRenewals[v.id].filter(r => r.type === 'insurance').map((r) => (
                             <div key={r.id} style={{
-                              padding: '8px 10px',
-                              background: 'rgba(255,255,255,0.02)',
-                              border: '1px solid var(--glass-border)',
-                              borderRadius: '6px',
+                              padding: '10px 12px',
+                              background: '#ffffff',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px',
                               borderLeft: '3px solid var(--color-primary)',
-                              position: 'relative'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                             }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-primary-subtle)', padding: '1px 6px', borderRadius: '3px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', background: 'var(--color-primary)', padding: '2px 8px', borderRadius: '4px' }}>
                                   ประกันภัย {r.insurance_level && `ชั้น ${r.insurance_level}`}
                                 </span>
                                 <div style={{ display: 'flex', gap: '3px' }}>
-                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(0,178,255,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-primary)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><IoCreate size={12} /></button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(255,68,68,0.1)', border: 'none', borderRadius: '4px', color: '#ff4444', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><IoTrash size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(79,70,229,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-primary)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><LuPen size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(220,38,38,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-danger)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><LuTrash2 size={12} /></button>
                                 </div>
                               </div>
-                              {r.provider && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>ผู้ดำเนินการ: <strong>{r.provider}</strong></div>}
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
-                              <div style={{ display: 'flex', gap: '10px', fontSize: '0.7rem', flexWrap: 'wrap' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>เบี้ย <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.price)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>ดำเนินการ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.service_fee)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>อื่นๆ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.other_fee)}</strong></span>
+                              {r.provider && <div style={{ fontSize: '0.73rem', color: '#334155', marginBottom: '3px', fontWeight: 500 }}>📍 {r.provider}</div>}
+                              <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: '4px', fontWeight: 500 }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
+                              <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', flexWrap: 'wrap', color: '#475569' }}>
+                                <span>เบี้ย <strong style={{ color: '#1e293b' }}>{fmtMoney(r.price)}</strong></span>
+                                <span>ดำเนินการ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.service_fee)}</strong></span>
+                                <span>อื่นๆ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.other_fee)}</strong></span>
                               </div>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '3px' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary)', marginTop: '4px' }}>
                                 รวม: {fmtMoney(r.total_cost)}
-                                {r.notes && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
+                                {r.notes && <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
                               </div>
                               {renderAttachments(r, v.id)}
                             </div>
@@ -659,31 +659,30 @@ export default function Renewals() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {vehicleRenewals[v.id].filter(r => r.type === 'tax').map((r) => (
                             <div key={r.id} style={{
-                              padding: '8px 10px',
-                              background: 'rgba(255,255,255,0.02)',
-                              border: '1px solid var(--glass-border)',
-                              borderRadius: '6px',
+                              padding: '10px 12px',
+                              background: '#ffffff',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px',
                               borderLeft: '3px solid var(--color-accent)',
-                              position: 'relative'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                             }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-accent-subtle)', padding: '1px 6px', borderRadius: '3px' }}>ภาษีประจำปี</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', background: 'var(--color-accent)', padding: '2px 8px', borderRadius: '4px' }}>ภาษีประจำปี</span>
                                 <div style={{ display: 'flex', gap: '3px' }}>
-                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(0,178,255,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-primary)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><IoCreate size={12} /></button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(255,68,68,0.1)', border: 'none', borderRadius: '4px', color: '#ff4444', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><IoTrash size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(124,58,237,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-accent)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><LuPen size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(220,38,38,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-danger)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><LuTrash2 size={12} /></button>
                                 </div>
                               </div>
-                              {r.provider && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>ผู้ดำเนินการ: <strong>{r.provider}</strong></div>}
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
-                              <div style={{ display: 'flex', gap: '10px', fontSize: '0.7rem', flexWrap: 'wrap' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>ค่าภาษี <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.price)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>ตรวจสภาพ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.inspection_fee)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>ดำเนินการ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.service_fee)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>อื่นๆ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.other_fee)}</strong></span>
+                              {r.provider && <div style={{ fontSize: '0.73rem', color: '#334155', marginBottom: '3px', fontWeight: 500 }}>📍 {r.provider}</div>}
+                              <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: '4px', fontWeight: 500 }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
+                              <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', flexWrap: 'wrap', color: '#475569' }}>
+                                <span>ค่าภาษี <strong style={{ color: '#1e293b' }}>{fmtMoney(r.price)}</strong></span>
+                                <span>ตรวจสภาพ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.inspection_fee)}</strong></span>
+                                <span>ดำเนินการ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.service_fee)}</strong></span>
                               </div>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '3px' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-accent)', marginTop: '4px' }}>
                                 รวม: {fmtMoney(r.total_cost)}
-                                {r.notes && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
+                                {r.notes && <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
                               </div>
                               {renderAttachments(r, v.id)}
                             </div>
@@ -703,30 +702,30 @@ export default function Renewals() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {vehicleRenewals[v.id].filter(r => r.type === 'act').map((r) => (
                             <div key={r.id} style={{
-                              padding: '8px 10px',
-                              background: 'rgba(255,255,255,0.02)',
-                              border: '1px solid var(--glass-border)',
-                              borderRadius: '6px',
+                              padding: '10px 12px',
+                              background: '#ffffff',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px',
                               borderLeft: '3px solid var(--color-success)',
-                              position: 'relative'
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                             }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-success)', background: 'var(--color-success-subtle)', padding: '1px 6px', borderRadius: '3px' }}>พ.ร.บ.</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', background: 'var(--color-success)', padding: '2px 8px', borderRadius: '4px' }}>พ.ร.บ.</span>
                                 <div style={{ display: 'flex', gap: '3px' }}>
-                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(0,178,255,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-primary)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><IoCreate size={12} /></button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(255,68,68,0.1)', border: 'none', borderRadius: '4px', color: '#ff4444', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><IoTrash size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); openEditModal(r, v.id); }} style={{ background: 'rgba(5,150,105,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-success)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="แก้ไข"><LuPen size={12} /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id, v.id); }} style={{ background: 'rgba(220,38,38,0.1)', border: 'none', borderRadius: '4px', color: 'var(--color-danger)', padding: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="ลบ"><LuTrash2 size={12} /></button>
                                 </div>
                               </div>
-                              {r.provider && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '2px' }}>ผู้ดำเนินการ: <strong>{r.provider}</strong></div>}
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
-                              <div style={{ display: 'flex', gap: '10px', fontSize: '0.7rem', flexWrap: 'wrap' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>ค่า พ.ร.บ. <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.price)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>ดำเนินการ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.service_fee)}</strong></span>
-                                <span style={{ color: 'var(--text-muted)' }}>อื่นๆ <strong style={{ color: 'var(--text-primary)' }}>{fmtMoney(r.other_fee)}</strong></span>
+                              {r.provider && <div style={{ fontSize: '0.73rem', color: '#334155', marginBottom: '3px', fontWeight: 500 }}>📍 {r.provider}</div>}
+                              <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: '4px', fontWeight: 500 }}>{fmtDate(r.renew_date)} → {fmtDate(r.expire_date)}</div>
+                              <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', flexWrap: 'wrap', color: '#475569' }}>
+                                <span>ค่า พ.ร.บ. <strong style={{ color: '#1e293b' }}>{fmtMoney(r.price)}</strong></span>
+                                <span>ดำเนินการ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.service_fee)}</strong></span>
+                                <span>อื่นๆ <strong style={{ color: '#1e293b' }}>{fmtMoney(r.other_fee)}</strong></span>
                               </div>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '3px' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-success)', marginTop: '4px' }}>
                                 รวม: {fmtMoney(r.total_cost)}
-                                {r.notes && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
+                                {r.notes && <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 400, marginLeft: '8px' }}>📝 {r.notes}</span>}
                               </div>
                               {renderAttachments(r, v.id)}
                             </div>

@@ -67,7 +67,7 @@ class _MaintenanceReportScreenState extends State<MaintenanceReportScreen> {
   String _formatNumber(double num) {
     final str = num.toStringAsFixed(2);
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    String Function(Match) mathFunc = (Match match) => '${match[1]},';
+    String mathFunc(Match match) => '${match[1]},';
     
     // Split decimal part
     final parts = str.split('.');
@@ -304,7 +304,7 @@ class _MaintenanceReportScreenState extends State<MaintenanceReportScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _tickets.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 10),
+                            separatorBuilder: (_, _) => const SizedBox(height: 10),
                             itemBuilder: (context, index) {
                               final t = _tickets[index];
                               final isCompleted = t['status'] == 'completed';
