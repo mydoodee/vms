@@ -17,16 +17,23 @@ import {
   LuUser,
   LuSparkles,
   LuFileStack,
-  LuPrinter
+  LuPrinter,
+  LuPen,
+  LuCheck,
+  LuX,
+  LuPlus,
+  LuClipboardList
 } from 'react-icons/lu';
 import api from '../services/api';
 import GlassCard from '../components/UI/GlassCard';
 import StatusBadge from '../components/UI/StatusBadge';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 import NeonButton from '../components/UI/NeonButton';
+import ThaiDateInput from '../components/UI/ThaiDateInput';
 import { formatThaiDate } from '../utils/thaiDate';
 import { getFileUrl } from '../utils/fileUrl';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function VehicleDetail() {
   const { id } = useParams();
@@ -254,7 +261,120 @@ export default function VehicleDetail() {
     }
   };
 
-  
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [insuranceCompanies, setInsuranceCompanies] = useState([]);
+
+  const fetchInsuranceCompanies = async () => {
+    try {
+      const { data } = await api.get('/insurance-companies');
+      setInsuranceCompanies(data.data || []);
+    } catch (err) {
+      console.error('Failed to load insurance companies', err);
+    }
+  };
+
+  const startEditing = () => {
+    if (!vehicle) return;
+    setEditForm({
+      plate_number: vehicle.plate_number || '',
+      brand: vehicle.brand || '',
+      model: vehicle.model || '',
+      year: vehicle.year || '',
+      color: vehicle.color || '',
+      fuel_type: vehicle.fuel_type || 'gasoline',
+      department: vehicle.department || '',
+      vin: vehicle.vin || '',
+      engine_number: vehicle.engine_number || '',
+      assigned_driver: vehicle.driver_name || vehicle.assigned_driver || '',
+      work_registration: vehicle.work_registration || '',
+      mileage: vehicle.mileage || '0',
+      status: vehicle.status || 'active',
+      notes: vehicle.notes || '',
+      insurance_company: vehicle.insurance_company || '',
+      insurance_level: vehicle.insurance_level || '1',
+      insurance_price: vehicle.insurance_price || '0',
+      insurance_renew_date: vehicle.insurance_renew_date ? vehicle.insurance_renew_date.split('T')[0] : '',
+      insurance_expire: vehicle.insurance_expire ? vehicle.insurance_expire.split('T')[0] : '',
+      tax_provider: vehicle.tax_provider || '',
+      tax_price: vehicle.tax_price || '0',
+      tax_inspection_fee: vehicle.tax_inspection_fee || '0',
+      tax_renew_date: vehicle.tax_renew_date ? vehicle.tax_renew_date.split('T')[0] : '',
+      tax_expire: vehicle.tax_expire ? vehicle.tax_expire.split('T')[0] : '',
+      act_provider: vehicle.act_provider || '',
+      act_price: vehicle.act_price || '0',
+      act_renew_date: vehicle.act_renew_date ? vehicle.act_renew_date.split('T')[0] : '',
+      act_expire: vehicle.act_expire ? vehicle.act_expire.split('T')[0] : '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleInputChange = (key, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!editForm.plate_number || !editForm.brand) {
+      toast.error('กรุณากรอกข้อมูลเลขทะเบียนและยี่ห้อรถยนต์');
+      return;
+    }
+    
+    setSaving(true);
+    const payload = {
+      plate_number: editForm.plate_number,
+      brand: editForm.brand,
+      model: editForm.model,
+      year: parseInt(editForm.year) || null,
+      color: editForm.color,
+      engine_number: editForm.engine_number,
+      vin: editForm.vin,
+      mileage: parseInt(editForm.mileage) || 0,
+      fuel_type: editForm.fuel_type,
+      insurance_expire: editForm.insurance_expire || null,
+      tax_expire: editForm.tax_expire || null,
+      tax_provider: editForm.tax_provider || null,
+      tax_price: parseFloat(editForm.tax_price) || 0,
+      tax_renew_date: editForm.tax_renew_date || null,
+      act_expire: editForm.act_expire || null,
+      act_provider: editForm.act_provider || null,
+      act_price: parseFloat(editForm.act_price) || 0,
+      act_renew_date: editForm.act_renew_date || null,
+      tax_inspection_fee: parseFloat(editForm.tax_inspection_fee) || 0,
+      status: editForm.status,
+      department: editForm.department,
+      notes: editForm.notes,
+      image_url: vehicle.image_url || null,
+      document_url: vehicle.document_url || null,
+      insurance_company: editForm.insurance_company || null,
+      insurance_price: parseFloat(editForm.insurance_price) || 0,
+      insurance_renew_date: editForm.insurance_renew_date || null,
+      insurance_level: editForm.insurance_level || null,
+      assigned_driver: editForm.assigned_driver || null,
+      work_registration: editForm.work_registration || null
+    };
+
+    try {
+      await api.put(`/vehicles/${id}`, payload);
+      toast.success('แก้ไขข้อมูลรถยนต์สำเร็จ!');
+      setIsEditing(false);
+      
+      setLoading(true);
+      const { data } = await api.get(`/vehicles/${id}`);
+      setVehicle(data.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'ไม่สามารถบันทึกข้อมูลรถยนต์ได้');
+    } finally {
+      setLoading(false);
+      setSaving(false);
+    }
+  };
+
   // Navigation tabs
   const [activeTab, setActiveTab] = useState('specs'); // specs | pm | history | docs
   const [docTab, setDocTab] = useState('insurance'); // insurance | tax | act
@@ -271,6 +391,7 @@ export default function VehicleDetail() {
       }
     };
     fetchVehicle();
+    fetchInsuranceCompanies();
   }, [id]);
 
   // Helper: compute days left + UI badge with premium soft colors
@@ -304,52 +425,95 @@ export default function VehicleDetail() {
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
       {/* 1. Page Header with Back Button */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button 
-          onClick={() => navigate('/vehicles')} 
-          style={{
-            background: '#ffffff',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '10px',
-            width: '38px',
-            height: '38px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            color: 'var(--text-secondary)'
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-          title="กลับ"
-        >
-          <LuArrowLeft size={18} />
-        </button>
-        <button 
-          onClick={handlePrint} 
-          style={{
-            background: '#ffffff',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '10px',
-            width: '38px',
-            height: '38px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            color: 'var(--text-secondary)'
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-          title="พิมพ์รายละเอียด (PDF)"
-        >
-          <LuPrinter size={18} />
-        </button>
-        <div>
-          <h1 className="page-title" style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>รายละเอียดข้อมูลรถยนต์</h1>
-          <p className="page-subtitle" style={{ margin: 0 }}>ข้อมูลรายละเอียด สถิติ และประวัติยานพาหนะ</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            onClick={() => navigate('/vehicles')} 
+            style={{
+              background: '#ffffff',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '10px',
+              width: '38px',
+              height: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              color: 'var(--text-secondary)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            title="กลับ"
+          >
+            <LuArrowLeft size={18} />
+          </button>
+          <button 
+            onClick={handlePrint} 
+            style={{
+              background: '#ffffff',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '10px',
+              width: '38px',
+              height: '38px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              color: 'var(--text-secondary)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            title="พิมพ์รายละเอียด (PDF)"
+          >
+            <LuPrinter size={18} />
+          </button>
+          <div>
+            <h1 className="page-title" style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>รายละเอียดข้อมูลรถยนต์</h1>
+            <p className="page-subtitle" style={{ margin: 0 }}>ข้อมูลรายละเอียด สถิติ และประวัติยานพาหนะ</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <NeonButton 
+            variant="success" 
+            onClick={() => navigate(`/tickets/new?vehicleId=${vehicle.id}`)}
+            style={{ height: '38px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <LuPlus size={16} /> สร้างใบแจ้งซ่อม
+          </NeonButton>
+          {canEdit && (
+            <>
+              {isEditing ? (
+                <>
+                  <NeonButton 
+                    variant="ghost" 
+                    onClick={() => setIsEditing(false)} 
+                    disabled={saving}
+                    style={{ height: '38px', padding: '0 16px' }}
+                  >
+                    ยกเลิก
+                  </NeonButton>
+                  <NeonButton 
+                    variant="primary" 
+                    onClick={handleSave} 
+                    disabled={saving}
+                    style={{ height: '38px', padding: '0 16px' }}
+                  >
+                    {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+                  </NeonButton>
+                </>
+              ) : (
+                <NeonButton 
+                  variant="primary" 
+                  onClick={startEditing}
+                  style={{ height: '38px', padding: '0 16px' }}
+                >
+                  ✏️ แก้ไขข้อมูล
+                </NeonButton>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -404,25 +568,44 @@ export default function VehicleDetail() {
       {/* 3. Main Split Grid */}
       <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         
-        {/* Left Column: Tabbed Cards (65%) */}
-        <div style={{ flex: '1.8', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <GlassCard style={{ padding: '24px' }}>
+        {/* Left Column: Vehicle Image (40%) */}
+        <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {(() => {
+            let images = [];
+            if (vehicle.image_url) {
+              try { images = JSON.parse(vehicle.image_url); } catch { images = [vehicle.image_url]; }
+            }
+            if (images.length === 0) return (
+              <GlassCard style={{ padding: 0, overflow: 'hidden', height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(37,99,235,0.02)' }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <LuCar size={48} style={{ opacity: 0.3, marginBottom: '8px' }} />
+                  <p style={{ fontSize: '0.85rem', margin: 0 }}>ไม่มีรูปรถในระบบ</p>
+                </div>
+              </GlassCard>
+            );
+            return <ImageCarousel images={images} brand={vehicle.brand} model={vehicle.model} />;
+          })()}
+        </div>
+
+        {/* Right Column: Tabbed Cards (60%) */}
+        <div style={{ flex: '1.5', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <GlassCard style={{ padding: '20px' }}>
             {/* Top Navigation Tabs */}
             <div style={{
               display: 'flex',
               gap: '6px',
               background: 'rgba(37, 99, 235, 0.04)',
-              padding: '6px',
-              borderRadius: '14px',
+              padding: '5px',
+              borderRadius: '12px',
               border: '1px solid var(--glass-border)',
-              marginBottom: '20px',
+              marginBottom: '16px',
               width: 'fit-content'
             }}>
               {[
-                { key: 'specs', label: 'ข้อมูลรถยนต์', icon: <LuCar size={16} /> },
-                { key: 'pm', label: 'กำหนด PM', icon: <LuSettings size={16} /> },
-                { key: 'history', label: 'ประวัติซ่อม', icon: <LuWrench size={16} /> },
-                { key: 'docs', label: 'เอกสารแนบ', icon: <LuFileStack size={16} /> }
+                { key: 'specs', label: 'ข้อมูลรถยนต์', icon: <LuCar size={15} /> },
+                { key: 'pm', label: 'กำหนด PM', icon: <LuSettings size={15} /> },
+                { key: 'history', label: 'ประวัติซ่อม', icon: <LuWrench size={15} /> },
+                { key: 'docs', label: 'เอกสารแนบ', icon: <LuFileStack size={15} /> }
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -431,9 +614,9 @@ export default function VehicleDetail() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
-                    borderRadius: '10px',
+                    gap: '5px',
+                    padding: '7px 14px',
+                    borderRadius: '9px',
                     border: 'none',
                     background: activeTab === tab.key 
                       ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)' 
@@ -441,7 +624,7 @@ export default function VehicleDetail() {
                     color: activeTab === tab.key ? '#fff' : 'var(--text-secondary)',
                     cursor: 'pointer',
                     fontWeight: activeTab === tab.key ? 700 : 500,
-                    fontSize: '0.85rem',
+                    fontSize: '0.82rem',
                     transition: 'all 0.2s',
                     boxShadow: activeTab === tab.key ? '0 4px 12px rgba(37, 99, 235, 0.15)' : 'none'
                   }}
@@ -454,27 +637,160 @@ export default function VehicleDetail() {
 
             {/* TAB CONTENT: SPECS */}
             {activeTab === 'specs' && (
-              <div className="grid grid-2" style={{ gap: '16px 24px' }}>
-                <SpecRow label="ยี่ห้อ / รุ่น" value={`${vehicle.brand} ${vehicle.model || ''}`} />
-                <SpecRow label="เลขทะเบียน" value={vehicle.plate_number} />
-                <SpecRow label="ปีจดทะเบียน" value={vehicle.year} />
-                <SpecRow label="สีรถ" value={vehicle.color} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
+                <SpecRow label="ยี่ห้อ / รุ่น" value={`${vehicle.brand} ${vehicle.model || ''}`} isEditing={isEditing}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      value={editForm.brand} 
+                      onChange={(e) => handleInputChange('brand', e.target.value)} 
+                      placeholder="ยี่ห้อ"
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '0.85rem' }} 
+                    />
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      value={editForm.model} 
+                      onChange={(e) => handleInputChange('model', e.target.value)} 
+                      placeholder="รุ่น"
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '0.85rem' }} 
+                    />
+                  </div>
+                </SpecRow>
+                <SpecRow label="เลขทะเบียน" value={vehicle.plate_number} isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.plate_number} 
+                    onChange={(e) => handleInputChange('plate_number', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="ปีจดทะเบียน" value={vehicle.year} isEditing={isEditing}>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={editForm.year} 
+                    onChange={(e) => handleInputChange('year', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="สีรถ" value={vehicle.color} isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.color} 
+                    onChange={(e) => handleInputChange('color', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
                 <SpecRow label="ประเภทเชื้อเพลิง" value={
                   vehicle.fuel_type === 'gasoline' ? 'เบนซิน' :
                   vehicle.fuel_type === 'diesel' ? 'ดีเซล' :
                   vehicle.fuel_type === 'electric' ? 'ไฟฟ้า (EV)' :
                   vehicle.fuel_type === 'hybrid' ? 'ไฮบริด' : vehicle.fuel_type
-                } />
-                <SpecRow label="แผนกที่สังกัด" value={vehicle.department} />
-                <SpecRow label="เลขตัวถัง (VIN)" value={vehicle.vin} isMono />
-                <SpecRow label="เลขเครื่องยนต์" value={vehicle.engine_number} isMono />
-                <SpecRow label="ผู้ขับขี่ประจำรถ" value={vehicle.driver_name} />
-                <SpecRow label="ขึ้นทะเบียนงาน" value={vehicle.work_registration} />
+                } isEditing={isEditing}>
+                  <select 
+                    className="form-select" 
+                    value={editForm.fuel_type} 
+                    onChange={(e) => handleInputChange('fuel_type', e.target.value)}
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }}
+                  >
+                    <option value="gasoline">เบนซิน</option>
+                    <option value="diesel">ดีเซล</option>
+                    <option value="electric">ไฟฟ้า (EV)</option>
+                    <option value="hybrid">ไฮบริด</option>
+                    <option value="lpg">LPG</option>
+                  </select>
+                </SpecRow>
+                <SpecRow label="แผนกที่สังกัด" value={vehicle.department} isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.department} 
+                    onChange={(e) => handleInputChange('department', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="เลขตัวถัง (VIN)" value={vehicle.vin} isMono isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.vin} 
+                    onChange={(e) => handleInputChange('vin', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%', fontFamily: 'var(--font-mono)' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="เลขเครื่องยนต์" value={vehicle.engine_number} isMono isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.engine_number} 
+                    onChange={(e) => handleInputChange('engine_number', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%', fontFamily: 'var(--font-mono)' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="ผู้ขับขี่ประจำรถ" value={vehicle.driver_name} isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.assigned_driver} 
+                    onChange={(e) => handleInputChange('assigned_driver', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
+                <SpecRow label="ขึ้นทะเบียนงาน" value={vehicle.work_registration} isEditing={isEditing}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editForm.work_registration} 
+                    onChange={(e) => handleInputChange('work_registration', e.target.value)} 
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                  />
+                </SpecRow>
+
+                {/* Additional inline fields for editing mileage & status easily */}
+                {isEditing && (
+                  <>
+                    <SpecRow label="ระยะไมล์ปัจจุบัน (km)" value={vehicle.mileage} isEditing={isEditing}>
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        value={editForm.mileage} 
+                        onChange={(e) => handleInputChange('mileage', e.target.value)} 
+                        style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }} 
+                      />
+                    </SpecRow>
+                    <SpecRow label="สถานะรถยนต์" value={vehicle.status} isEditing={isEditing}>
+                      <select 
+                        className="form-select" 
+                        value={editForm.status} 
+                        onChange={(e) => handleInputChange('status', e.target.value)}
+                        style={{ padding: '4px 8px', fontSize: '0.85rem', width: '100%' }}
+                      >
+                        <option value="active">พร้อมใช้งาน</option>
+                        <option value="maintenance">กำลังซ่อมบำรุง</option>
+                        <option value="disabled">งดใช้งาน</option>
+                        <option value="sold">จำหน่ายออก</option>
+                      </select>
+                    </SpecRow>
+                  </>
+                )}
                 
-                {vehicle.notes && (
-                  <div style={{ gridColumn: 'span 2', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--glass-border)' }}>
+                {(isEditing || vehicle.notes) && (
+                  <div style={{ gridColumn: 'span 2', marginTop: '4px', paddingTop: '12px', borderTop: '1px solid var(--glass-border)' }}>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>📝 หมายเหตุเพิ่มเติม</span>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', margin: 0 }}>{vehicle.notes}</p>
+                    {isEditing ? (
+                      <textarea
+                        className="form-input"
+                        value={editForm.notes}
+                        onChange={(e) => handleInputChange('notes', e.target.value)}
+                        style={{ padding: '8px', fontSize: '0.85rem', width: '100%', minHeight: '60px', marginTop: '4px' }}
+                      />
+                    ) : (
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', margin: 0 }}>{vehicle.notes}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -588,7 +904,7 @@ export default function VehicleDetail() {
                   return (
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                       gap: '12px'
                     }}>
                       {docs.map((docPath, idx) => {
@@ -643,100 +959,174 @@ export default function VehicleDetail() {
             )}
           </GlassCard>
         </div>
+      </div>
 
-        {/* Right Column: Carousel & Insurance (35%) */}
-        <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Vehicle images */}
-          {(() => {
-            let images = [];
-            if (vehicle.image_url) {
-              try { images = JSON.parse(vehicle.image_url); } catch { images = [vehicle.image_url]; }
-            }
-            if (images.length === 0) return null;
-            return <ImageCarousel images={images} brand={vehicle.brand} model={vehicle.model} />;
-          })()}
-
-          {/* Insurance / Tax / ACT tabs details */}
-          <GlassCard style={{ display: 'flex', flexDirection: 'column', gap: '0', overflow: 'hidden' }}>
-            {/* Header tab buttons */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '4px', 
-              background: 'rgba(37,99,235,0.03)', 
-              padding: '6px', 
-              borderBottom: '1px solid var(--glass-border)'
+      {/* 4. Insurance / Tax / ACT Section - 3 Side-by-Side Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {[
+          { 
+            key: 'insurance', 
+            icon: <LuShieldCheck size={20}/>, 
+            title: 'ประกันภัย', 
+            color: '#2563eb', 
+            gradient: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(37,99,235,0.02) 100%)',
+            borderColor: 'rgba(37,99,235,0.15)',
+            dateKey: 'insurance_expire',
+            fields: [
+              { label: 'บริษัท', value: vehicle.insurance_company, editKey: 'insurance_company', type: 'insurance-select' },
+              { label: 'ชั้นประกัน', value: vehicle.insurance_level ? `ชั้น ${vehicle.insurance_level}` : null, editKey: 'insurance_level', type: 'insurance-level' },
+              { label: 'เบี้ยประกัน', value: vehicle.insurance_price ? `฿${Number(vehicle.insurance_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null, editKey: 'insurance_price', type: 'number', highlight: true },
+              { label: 'ต่อประกันล่าสุด', value: vehicle.insurance_renew_date ? formatThaiDate(vehicle.insurance_renew_date) : null, editKey: 'insurance_renew_date', type: 'date' },
+              { label: 'วันหมดอายุ', dateKey: 'insurance_expire', editKey: 'insurance_expire', type: 'date' }
+            ]
+          },
+          { 
+            key: 'tax', 
+            icon: <LuFileSpreadsheet size={20}/>, 
+            title: 'ภาษีรถประจำปี', 
+            color: '#d97706', 
+            gradient: 'linear-gradient(135deg, rgba(217,119,6,0.08) 0%, rgba(217,119,6,0.02) 100%)',
+            borderColor: 'rgba(217,119,6,0.15)',
+            dateKey: 'tax_expire',
+            fields: [
+              { label: 'ผู้ดำเนินการ', value: vehicle.tax_provider, editKey: 'tax_provider', type: 'text' },
+              { label: 'ค่าภาษี', value: vehicle.tax_price ? `฿${Number(vehicle.tax_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null, editKey: 'tax_price', type: 'number', highlight: true },
+              { label: 'ค่าตรวจสภาพ', value: vehicle.tax_inspection_fee ? `฿${Number(vehicle.tax_inspection_fee).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null, editKey: 'tax_inspection_fee', type: 'number' },
+              { label: 'ต่อภาษีล่าสุด', value: vehicle.tax_renew_date ? formatThaiDate(vehicle.tax_renew_date) : null, editKey: 'tax_renew_date', type: 'date' },
+              { label: 'วันหมดอายุ', dateKey: 'tax_expire', editKey: 'tax_expire', type: 'date' }
+            ]
+          },
+          { 
+            key: 'act', 
+            icon: <LuTriangleAlert size={20}/>, 
+            title: 'พ.ร.บ.', 
+            color: '#059669', 
+            gradient: 'linear-gradient(135deg, rgba(5,150,105,0.08) 0%, rgba(5,150,105,0.02) 100%)',
+            borderColor: 'rgba(5,150,105,0.15)',
+            dateKey: 'act_expire',
+            fields: [
+              { label: 'ผู้ให้บริการ', value: vehicle.act_provider, editKey: 'act_provider', type: 'text' },
+              { label: 'ราคา พ.ร.บ.', value: vehicle.act_price ? `฿${Number(vehicle.act_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null, editKey: 'act_price', type: 'number', highlight: true },
+              { label: 'ต่อ พ.ร.บ. ล่าสุด', value: vehicle.act_renew_date ? formatThaiDate(vehicle.act_renew_date) : null, editKey: 'act_renew_date', type: 'date' },
+              { label: 'วันหมดอายุ', dateKey: 'act_expire', editKey: 'act_expire', type: 'date' }
+            ]
+          }
+        ].map(section => {
+          const expiry = getExpiryStatus(vehicle[section.dateKey]);
+          const urgent = expiry.days !== null && expiry.days <= 30;
+          return (
+            <GlassCard key={section.key} style={{ 
+              padding: 0, 
+              background: section.gradient,
+              border: `1px solid ${section.borderColor}`,
+              display: 'flex',
+              flexDirection: 'column'
             }}>
-              {[
-                { key: 'insurance', icon: <LuShieldCheck size={14}/>, label: 'ประกัน', color: 'var(--color-primary)', dateKey: 'insurance_expire' },
-                { key: 'tax',       icon: <LuFileSpreadsheet size={14}/>, label: 'ภาษีรถ', color: 'var(--color-accent)', dateKey: 'tax_expire' },
-                { key: 'act',       icon: <LuTriangleAlert size={14}/>, label: 'พ.ร.บ.', color: '#059669', dateKey: 'act_expire' },
-              ].map(({ key, icon, label, color, dateKey }) => {
-                const st = getExpiryStatus(vehicle[dateKey]);
-                const isActive = docTab === key;
-                const urgent = st.days !== null && st.days <= 30;
-                return (
-                  <button key={key} type="button" onClick={() => setDocTab(key)} style={{
-                    flex: 1, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center', 
-                    gap: '2px',
-                    padding: '8px 4px', 
-                    borderRadius: '8px', 
-                    border: 'none',
-                    background: isActive ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
-                    color: isActive ? 'var(--color-primary)' : 'var(--text-secondary)',
-                    cursor: 'pointer', 
-                    transition: 'all 0.2s', 
-                    position: 'relative'
+              {/* Card Header */}
+              <div style={{ 
+                padding: '14px 18px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                borderBottom: `1px solid ${section.borderColor}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ 
+                    width: '36px', height: '36px', borderRadius: '10px', 
+                    background: `${section.color}15`, 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: section.color 
                   }}>
-                    {urgent && <span style={{ position:'absolute', top:4, right:6, width:6, height:6, borderRadius:'50%', background:'#dc2626' }} />}
-                    <span style={{ display:'flex', alignItems:'center', gap:'4px', fontWeight: isActive ? 700 : 500, fontSize:'0.78rem' }}>{icon}{label}</span>
-                    <span style={{ fontSize:'0.65rem', color: isActive ? st.color : 'var(--text-muted)', fontWeight: 700 }}>{st.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    {section.icon}
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{section.title}</span>
+                </div>
+                <span style={{ 
+                  fontSize: '0.72rem', fontWeight: 700, 
+                  color: urgent ? '#dc2626' : expiry.color, 
+                  background: urgent ? 'rgba(220,38,38,0.08)' : expiry.bg, 
+                  padding: '3px 10px', borderRadius: '20px',
+                  border: `1px solid ${urgent ? 'rgba(220,38,38,0.2)' : `${expiry.color}22`}`,
+                  whiteSpace: 'nowrap'
+                }}>
+                  {urgent && '⚠ '}{expiry.label}
+                </span>
+              </div>
 
-            {/* Tab content list */}
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {docTab === 'insurance' && (
-                <>
-                  <InfoRow label="บริษัทประกันภัย" value={vehicle.insurance_company} />
-                  <InfoRow label="ระดับประกันภัย" value={vehicle.insurance_level ? `ชั้น ${vehicle.insurance_level}` : null} />
-                  <InfoRow label="ค่าเบี้ยประกันภัย" value={vehicle.insurance_price ? `฿${Number(vehicle.insurance_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} highlight />
-                  <InfoRow label="ต่อประกันล่าสุด" value={vehicle.insurance_renew_date ? formatThaiDate(vehicle.insurance_renew_date) : null} />
-                  <InfoRow label="วันหมดอายุ" dateStr={vehicle.insurance_expire} expiry={getExpiryStatus(vehicle.insurance_expire)} />
-                </>
-              )}
-              {docTab === 'tax' && (
-                <>
-                  <InfoRow label="ผู้ดำเนินการภาษี" value={vehicle.tax_provider} />
-                  <InfoRow label="ค่าภาษีประจำปี" value={vehicle.tax_price ? `฿${Number(vehicle.tax_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} highlight />
-                  <InfoRow label="ค่าตรวจสภาพ" value={vehicle.tax_inspection_fee ? `฿${Number(vehicle.tax_inspection_fee).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} />
-                  <InfoRow label="ต่อภาษีล่าสุด" value={vehicle.tax_renew_date ? formatThaiDate(vehicle.tax_renew_date) : null} />
-                  <InfoRow label="วันหมดอายุ" dateStr={vehicle.tax_expire} expiry={getExpiryStatus(vehicle.tax_expire)} />
-                </>
-              )}
-              {docTab === 'act' && (
-                <>
-                  <InfoRow label="ผู้ให้บริการ พ.ร.บ." value={vehicle.act_provider} />
-                  <InfoRow label="ราคา พ.ร.บ." value={vehicle.act_price ? `฿${Number(vehicle.act_price).toLocaleString('th-TH',{minimumFractionDigits:2})}` : null} highlight />
-                  <InfoRow label="ต่อ พ.ร.บ. ล่าสุด" value={vehicle.act_renew_date ? formatThaiDate(vehicle.act_renew_date) : null} />
-                  <InfoRow label="วันหมดอายุ" dateStr={vehicle.act_expire} expiry={getExpiryStatus(vehicle.act_expire)} />
-                </>
-              )}
-            </div>
+              {/* Card Body */}
+              <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                {section.fields.map((field, idx) => {
+                  // Expiry date field
+                  if (field.dateKey) {
+                    const fExpiry = getExpiryStatus(vehicle[field.dateKey]);
+                    if (isEditing) {
+                      return (
+                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{field.label}</span>
+                          <ThaiDateInput value={editForm[field.editKey]} onChange={(val) => handleInputChange(field.editKey, val)} />
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: idx > 0 ? '1px solid rgba(0,0,0,0.04)' : 'none' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{field.label}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                          {vehicle[field.dateKey] && <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{formatThaiDate(vehicle[field.dateKey])}</span>}
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: fExpiry.color, background: fExpiry.bg, padding: '1px 6px', borderRadius: '4px' }}>{fExpiry.label}</span>
+                        </div>
+                      </div>
+                    );
+                  }
 
-            <div style={{ padding: '0 20px 20px' }}>
-              <NeonButton variant="primary" style={{ width: '100%' }} onClick={() => navigate(`/tickets/new?vehicleId=${vehicle.id}`)}>
-                สร้างใบแจ้งซ่อมสำหรับคันนี้
-              </NeonButton>
-            </div>
-          </GlassCard>
+                  // Regular fields in edit mode
+                  if (isEditing) {
+                    let input;
+                    if (field.type === 'insurance-select') {
+                      input = (
+                        <select className="form-select" value={editForm[field.editKey]} onChange={(e) => handleInputChange(field.editKey, e.target.value)} style={{ padding: '5px 8px', fontSize: '0.82rem', width: '100%' }}>
+                          <option value="">-- เลือก --</option>
+                          {insuranceCompanies.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        </select>
+                      );
+                    } else if (field.type === 'insurance-level') {
+                      input = (
+                        <select className="form-select" value={editForm[field.editKey]} onChange={(e) => handleInputChange(field.editKey, e.target.value)} style={{ padding: '5px 8px', fontSize: '0.82rem', width: '100%' }}>
+                          <option value="1">ชั้น 1</option><option value="2">ชั้น 2</option><option value="3">ชั้น 3</option><option value="2+">ชั้น 2+</option><option value="3+">ชั้น 3+</option>
+                        </select>
+                      );
+                    } else if (field.type === 'date') {
+                      input = <ThaiDateInput value={editForm[field.editKey]} onChange={(val) => handleInputChange(field.editKey, val)} />;
+                    } else {
+                      input = (
+                        <input 
+                          type={field.type === 'number' ? 'number' : 'text'} 
+                          className="form-input" 
+                          value={editForm[field.editKey]} 
+                          onChange={(e) => handleInputChange(field.editKey, e.target.value)} 
+                          style={{ padding: '5px 8px', fontSize: '0.82rem', width: '100%', textAlign: field.type === 'number' ? 'right' : 'left' }} 
+                        />
+                      );
+                    }
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{field.label}</span>
+                        {input}
+                      </div>
+                    );
+                  }
 
-        </div>
+                  // Regular fields in view mode
+                  return (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: idx > 0 ? '1px solid rgba(0,0,0,0.04)' : 'none' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{field.label}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: field.highlight ? section.color : 'var(--text-primary)' }}>{field.value || '-'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </GlassCard>
+          );
+        })}
       </div>
     </div>
   );
@@ -759,7 +1149,7 @@ function ImageCarousel({ images, brand, model }) {
   const imgSrc = getFileUrl(activeImg);
 
   return (
-    <GlassCard style={{ padding: 0, overflow: 'hidden', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+    <GlassCard style={{ padding: 0, overflow: 'hidden', height: '340px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       <img 
         src={imgSrc} 
         alt={`${brand} ${model} รูปที่ ${currentIndex + 1}`} 
@@ -861,24 +1251,39 @@ function ImageCarousel({ images, brand, model }) {
   );
 }
 
-function SpecRow({ label, value, isMono }) {
+function SpecRow({ label, value, isMono, isEditing, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>{label}</span>
-      <span style={{ 
-        fontSize: '0.88rem', 
-        fontWeight: 700, 
-        color: 'var(--text-primary)',
-        fontFamily: isMono ? 'var(--font-mono)' : 'inherit',
-        letterSpacing: isMono ? '0.2px' : 'normal'
-      }}>
-        {value || '-'}
-      </span>
+      {isEditing ? (
+        children
+      ) : (
+        <span style={{ 
+          fontSize: '0.88rem', 
+          fontWeight: 700, 
+          color: 'var(--text-primary)',
+          fontFamily: isMono ? 'var(--font-mono)' : 'inherit',
+          letterSpacing: isMono ? '0.2px' : 'normal'
+        }}>
+          {value || '-'}
+        </span>
+      )}
     </div>
   );
 }
 
-function InfoRow({ label, value, dateStr, expiry, highlight }) {
+function InfoRow({ label, value, dateStr, expiry, highlight, isEditing, children }) {
+  if (isEditing) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(0,0,0,0.02)', gap: '16px' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', flexShrink: 0 }}>{label}</span>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   if (value === undefined && dateStr === undefined) return null;
   
   if (expiry) {

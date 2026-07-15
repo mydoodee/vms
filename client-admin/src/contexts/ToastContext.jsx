@@ -162,7 +162,7 @@ export function ToastProvider({ children }) {
 
       {/* Global Alert Modal rendering */}
       {alertState.isOpen && ReactDOM.createPortal(
-        <div className="modal-overlay" style={{ zIndex: 9997 }} onClick={handleAlertClose}>
+        <div className="modal-overlay" style={{ zIndex: 9997 }}>
           <div className="modal-content animate-fade-in" style={{ maxWidth: '420px', border: '1px solid var(--glass-border)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '30px 24px' }}>
               <div style={{
@@ -207,7 +207,7 @@ export function ToastProvider({ children }) {
 
       {/* Global Confirm Modal rendering */}
       {confirmState.isOpen && ReactDOM.createPortal(
-        <div className="modal-overlay" style={{ zIndex: 9998 }} onClick={() => handleConfirmAction(false)}>
+        <div className="modal-overlay" style={{ zIndex: 9998 }}>
           <div className="modal-content animate-fade-in" style={{ maxWidth: '420px', border: '1px solid var(--glass-border)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '30px 24px' }}>
               <div style={{

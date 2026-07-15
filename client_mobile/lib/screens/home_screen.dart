@@ -62,8 +62,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (user != null && user['fullname'] != null) {
         final driverName = user['fullname'].toString().toLowerCase().trim();
         for (var v in vehicles) {
-          final assignedDriver =
-              (v['assigned_driver'] ?? '').toString().toLowerCase().trim();
+          final assignedDriver = (v['assigned_driver'] ?? '')
+              .toString()
+              .toLowerCase()
+              .trim();
           if (assignedDriver == driverName && driverName.isNotEmpty) {
             assigned = v as Map<String, dynamic>;
             break;
@@ -78,8 +80,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         if (assigned != null) {
           _selectedVehicle = assigned;
         } else if (_selectedVehicle != null) {
-          final match = vehicles.firstWhere((v) => v['id'] == _selectedVehicle!['id'], orElse: () => null);
-          _selectedVehicle = match != null ? match as Map<String, dynamic> : null;
+          final match = vehicles.firstWhere(
+            (v) => v['id'] == _selectedVehicle!['id'],
+            orElse: () => null,
+          );
+          _selectedVehicle = match != null
+              ? match as Map<String, dynamic>
+              : null;
         }
         _tickets = tickets;
         _isLoading = false;
@@ -105,8 +112,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Text('ออกจากระบบ', style: TextStyle(color: Colors.white)),
           ],
         ),
-        content: const Text('คุณต้องการออกจากระบบหรือไม่?',
-            style: TextStyle(color: Colors.white70)),
+        content: const Text(
+          'คุณต้องการออกจากระบบหรือไม่?',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -114,8 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style:
-                ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             child: const Text('ยืนยัน'),
           ),
         ],
@@ -147,7 +155,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildDashboard() {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Colors.cyanAccent));
+        child: CircularProgressIndicator(color: Colors.cyanAccent),
+      );
     }
 
     if (_error != null) {
@@ -157,11 +166,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+              const Icon(
+                Icons.error_outline,
+                color: Colors.redAccent,
+                size: 48,
+              ),
               const SizedBox(height: 16),
-              Text(_error!,
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 16),
-                  textAlign: TextAlign.center),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _loadData,
@@ -179,12 +194,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     final primaryColor = Colors.cyanAccent.shade400;
-    final pendingCount =
-        _tickets.where((t) => t['status'] == 'pending').length;
-    final inProgressCount =
-        _tickets.where((t) => t['status'] == 'in_progress').length;
-    final completedCount =
-        _tickets.where((t) => t['status'] == 'completed').length;
+    final pendingCount = _tickets.where((t) => t['status'] == 'pending').length;
+    final inProgressCount = _tickets
+        .where((t) => t['status'] == 'in_progress')
+        .length;
+    final completedCount = _tickets
+        .where((t) => t['status'] == 'completed')
+        .length;
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -224,9 +240,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    child: ClipOval(
-                      child: _buildAvatarContent(size: 60),
-                    ),
+                    child: ClipOval(child: _buildAvatarContent(size: 60)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -236,16 +250,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         Text(
                           'สวัสดี, ${_user?['fullname'] ?? 'คนขับรถ'}',
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: primaryColor.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(6),
@@ -253,16 +270,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               child: Text(
                                 _user?['role'] ?? '-',
                                 style: TextStyle(
-                                    color: primaryColor,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold),
+                                  color: primaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'แผนก: ${_user?['department'] ?? '-'}',
                               style: const TextStyle(
-                                  color: Colors.white60, fontSize: 12),
+                                color: Colors.white60,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -277,14 +297,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // Stats Row
             Row(
               children: [
-                _buildStatCard('รอดำเนินการ', pendingCount.toString(),
-                    Colors.amber, Icons.hourglass_empty),
+                _buildStatCard(
+                  'รอดำเนินการ',
+                  pendingCount.toString(),
+                  Colors.amber,
+                  Icons.hourglass_empty,
+                ),
                 const SizedBox(width: 10),
-                _buildStatCard('กำลังซ่อม', inProgressCount.toString(),
-                    Colors.orange, Icons.build),
+                _buildStatCard(
+                  'กำลังซ่อม',
+                  inProgressCount.toString(),
+                  Colors.orange,
+                  Icons.build,
+                ),
                 const SizedBox(width: 10),
-                _buildStatCard('เสร็จสิ้น', completedCount.toString(),
-                    Colors.green, Icons.check_circle),
+                _buildStatCard(
+                  'เสร็จสิ้น',
+                  completedCount.toString(),
+                  Colors.green,
+                  Icons.check_circle,
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -295,11 +327,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Icon(Icons.directions_car, color: primaryColor, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  _assignedVehicle != null ? 'รถยนต์ประจำตัวของคุณ' : 'เลือกตรวจสอบข้อมูลรถยนต์คันอื่น',
+                  _assignedVehicle != null
+                      ? 'รถยนต์ประจำตัวของคุณ'
+                      : 'เลือกตรวจสอบข้อมูลรถยนต์คันอื่น',
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -308,7 +343,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // Dropdown selector if no vehicle is assigned
             if (_assignedVehicle == null && _vehicles.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E293B),
                   borderRadius: BorderRadius.circular(14),
@@ -317,14 +355,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<Map<String, dynamic>>(
                     dropdownColor: const Color(0xFF1E293B),
-                    hint: const Text('เลือกทะเบียนรถยนต์...', style: TextStyle(color: Colors.white30, fontSize: 14)),
+                    hint: const Text(
+                      'เลือกทะเบียนรถยนต์...',
+                      style: TextStyle(color: Colors.white30, fontSize: 14),
+                    ),
                     value: _selectedVehicle,
                     isExpanded: true,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                     items: _vehicles.map((v) {
                       return DropdownMenuItem<Map<String, dynamic>>(
                         value: v as Map<String, dynamic>,
-                        child: Text('${v['plate_number']} - ${v['brand']} ${v['model'] ?? ''}'),
+                        child: Text(
+                          '${v['plate_number']} - ${v['brand']} ${v['model'] ?? ''}',
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -345,8 +392,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   final activeV = _assignedVehicle ?? _selectedVehicle;
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (_) =>
-                            VehicleScreen(vehicle: activeV!)),
+                      builder: (_) => VehicleScreen(vehicle: activeV!),
+                    ),
                   );
                 },
                 child: Container(
@@ -364,8 +411,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: Colors.cyan.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(Icons.directions_car,
-                            color: primaryColor, size: 32),
+                        child: Icon(
+                          Icons.directions_car,
+                          color: primaryColor,
+                          size: 32,
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -375,48 +425,61 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Text(
                               '${(_assignedVehicle ?? _selectedVehicle)!['brand']} ${(_assignedVehicle ?? _selectedVehicle)!['model'] ?? ''}',
                               style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Row(
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.blue.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                        color: Colors.blue.withOpacity(0.3)),
+                                      color: Colors.blue.withOpacity(0.3),
+                                    ),
                                   ),
                                   child: Text(
-                                    (_assignedVehicle ?? _selectedVehicle)!['plate_number'],
+                                    (_assignedVehicle ??
+                                        _selectedVehicle)!['plate_number'],
                                     style: const TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
+                                      color: Colors.blue,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                Icon(Icons.speed,
-                                    color: Colors.orange.shade300, size: 14),
+                                Icon(
+                                  Icons.speed,
+                                  color: Colors.orange.shade300,
+                                  size: 14,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_formatNumber((_assignedVehicle ?? _selectedVehicle)!['mileage'])} km',
                                   style: TextStyle(
-                                      color: Colors.orange.shade300,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold),
+                                    color: Colors.orange.shade300,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios,
-                          color: Colors.white30, size: 16),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white30,
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -429,7 +492,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => RenewalsScreen(vehicle: (_assignedVehicle ?? _selectedVehicle)!),
+                            builder: (_) => RenewalsScreen(
+                              vehicle: (_assignedVehicle ?? _selectedVehicle)!,
+                            ),
                           ),
                         );
                       },
@@ -438,13 +503,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.green.withOpacity(0.2)),
+                          border: Border.all(
+                            color: Colors.green.withOpacity(0.2),
+                          ),
                         ),
                         child: const Column(
                           children: [
                             Icon(Icons.history, color: Colors.green),
                             SizedBox(height: 6),
-                            Text('ประวัติต่อประกัน/ภาษี', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text(
+                              'ประวัติต่อประกัน/ภาษี',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -456,7 +530,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => MaintenanceReportScreen(vehicle: (_assignedVehicle ?? _selectedVehicle)!),
+                            builder: (_) => MaintenanceReportScreen(
+                              vehicle: (_assignedVehicle ?? _selectedVehicle)!,
+                            ),
                           ),
                         );
                       },
@@ -465,13 +541,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                          border: Border.all(
+                            color: Colors.blue.withOpacity(0.2),
+                          ),
                         ),
                         child: const Column(
                           children: [
                             Icon(Icons.bar_chart, color: Colors.blue),
                             SizedBox(height: 6),
-                            Text('รายงานซ่อมบำรุง', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text(
+                              'รายงานซ่อมบำรุง',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -490,8 +575,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 child: const Column(
                   children: [
-                    Icon(Icons.directions_car_filled_outlined,
-                        color: Colors.white24, size: 48),
+                    Icon(
+                      Icons.directions_car_filled_outlined,
+                      color: Colors.white24,
+                      size: 48,
+                    ),
                     SizedBox(height: 12),
                     Text(
                       'กรุณาเลือกทะเบียนรถยนต์เพื่อตรวจสอบข้อมูล',
@@ -516,9 +604,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     const Text(
                       'การแจ้งซ่อมล่าสุด',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -527,9 +616,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onPressed: () {
                       _onTabTapped(2); // Switch to tickets tab
                     },
-                    child: const Text('ดูทั้งหมด →',
-                        style: TextStyle(color: Colors.cyan, fontSize: 13)),
-                  )
+                    child: const Text(
+                      'ดูทั้งหมด →',
+                      style: TextStyle(color: Colors.cyan, fontSize: 13),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 8),
@@ -539,15 +630,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 child: const Center(
-                  child: Text('ไม่มีการแจ้งซ่อมในระบบ',
-                      style: TextStyle(color: Colors.white38)),
+                  child: Text(
+                    'ไม่มีการแจ้งซ่อมในระบบ',
+                    style: TextStyle(color: Colors.white38),
+                  ),
                 ),
-              )
+              ),
             ] else ...[
-              ..._tickets.take(3).map((ticket) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _buildTicketCard(ticket),
-                  )),
+              ..._tickets
+                  .take(3)
+                  .map(
+                    (ticket) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _buildTicketCard(ticket),
+                    ),
+                  ),
             ],
             const SizedBox(height: 80), // Space for FAB
           ],
@@ -557,7 +654,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildStatCard(
-      String label, String value, Color color, IconData icon) {
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -573,7 +674,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Text(
               value,
               style: TextStyle(
-                  color: color, fontSize: 24, fontWeight: FontWeight.w900),
+                color: color,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -591,9 +695,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: () {
         Navigator.of(context)
-            .push(MaterialPageRoute(
-                builder: (_) =>
-                    TicketDetailScreen(ticketId: ticket['id'])))
+            .push(
+              MaterialPageRoute(
+                builder: (_) => TicketDetailScreen(ticketId: ticket['id']),
+              ),
+            )
             .then((_) => _loadData());
       },
       child: Container(
@@ -621,17 +727,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Text(
                     ticket['title'] ?? 'ไม่ระบุหัวข้อ',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'ทะเบียน: ${ticket['plate_number'] ?? '-'} • ${_formatTicketDate(ticket['created_at'])}',
-                    style:
-                        const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ),
@@ -653,12 +759,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       images = json.decode(imagesJson);
     } catch (_) {}
 
-    final hasImage = images.isNotEmpty && images[0].toString().trim().isNotEmpty;
+    final hasImage =
+        images.isNotEmpty && images[0].toString().trim().isNotEmpty;
     final serverBase = ApiService().baseUrl.replaceAll('/api', '');
     final imageUrl = hasImage
         ? (images[0].toString().startsWith('http')
-            ? images[0].toString()
-            : '$serverBase/${images[0]}')
+              ? images[0].toString()
+              : '$serverBase/${images[0]}')
         : '';
 
     return Container(
@@ -678,17 +785,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 height: 140,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   height: 140,
                   color: Colors.white.withOpacity(0.02),
-                  child: const Icon(Icons.directions_car, color: Colors.white30, size: 48),
+                  child: const Icon(
+                    Icons.directions_car,
+                    color: Colors.white30,
+                    size: 48,
+                  ),
                 ),
               )
             else
               Container(
                 height: 140,
                 color: Colors.white.withOpacity(0.02),
-                child: const Icon(Icons.directions_car, color: Colors.white30, size: 48),
+                child: const Icon(
+                  Icons.directions_car,
+                  color: Colors.white30,
+                  size: 48,
+                ),
               ),
             Padding(
               padding: const EdgeInsets.all(14),
@@ -708,11 +823,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: primaryColor.withOpacity(0.3), width: 1),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
                           vehicle['brand'] ?? 'ยี่ห้ออื่น',
@@ -733,12 +854,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.person_outline, size: 14, color: Colors.white38),
+                      const Icon(
+                        Icons.person_outline,
+                        size: 14,
+                        color: Colors.white38,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           'ผู้ขับขี่: ${vehicle['assigned_driver'] ?? 'ไม่ได้มอบหมาย'}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 12,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -750,18 +878,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => VehicleScreen(vehicle: vehicle),
-                              ),
-                            ).then((_) => _loadData());
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        VehicleScreen(vehicle: vehicle),
+                                  ),
+                                )
+                                .then((_) => _loadData());
                           },
                           icon: const Icon(Icons.info_outline, size: 16),
                           label: const Text('ดูข้อมูลรถ'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white70,
-                            side: BorderSide(color: Colors.white.withOpacity(0.12)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            side: BorderSide(
+                              color: Colors.white.withOpacity(0.12),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
@@ -770,23 +905,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => NewTicketScreen(
-                                  vehicleId: vehicle['id'],
-                                  plateNumber: vehicle['plate_number'],
-                                ),
-                              ),
-                            ).then((_) => _loadData());
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => NewTicketScreen(
+                                      vehicleId: vehicle['id'],
+                                      plateNumber: vehicle['plate_number'],
+                                    ),
+                                  ),
+                                )
+                                .then((_) => _loadData());
                           },
-                          icon: const Icon(Icons.add_comment, size: 16, color: Color(0xFF0F172A)),
+                          icon: const Icon(
+                            Icons.add_comment,
+                            size: 16,
+                            color: Color(0xFF0F172A),
+                          ),
                           label: const Text('แจ้งซ่อม'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
                             foregroundColor: const Color(0xFF0F172A),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -804,7 +949,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildVehiclesList() {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Colors.cyanAccent));
+        child: CircularProgressIndicator(color: Colors.cyanAccent),
+      );
     }
 
     if (_error != null) {
@@ -825,10 +971,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.directions_car_outlined, color: Colors.white24, size: 64),
+            Icon(
+              Icons.directions_car_outlined,
+              color: Colors.white24,
+              size: 64,
+            ),
             SizedBox(height: 16),
-            Text('ไม่มีข้อมูลรถยนต์ในระบบ',
-                style: TextStyle(color: Colors.white54, fontSize: 16)),
+            Text(
+              'ไม่มีข้อมูลรถยนต์ในระบบ',
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -852,7 +1004,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildTicketsList() {
     if (_isLoading) {
       return const Center(
-          child: CircularProgressIndicator(color: Colors.cyanAccent));
+        child: CircularProgressIndicator(color: Colors.cyanAccent),
+      );
     }
 
     if (_error != null) {
@@ -875,8 +1028,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Icon(Icons.build_outlined, color: Colors.white24, size: 64),
             SizedBox(height: 16),
-            Text('ยังไม่มีรายการแจ้งซ่อม',
-                style: TextStyle(color: Colors.white54, fontSize: 16)),
+            Text(
+              'ยังไม่มีรายการแจ้งซ่อม',
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -895,6 +1050,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     );
   }
+
   // ============ AVATAR HELPERS ============
   Widget _buildAvatarContent({double size = 90}) {
     final avatarUrl = ApiService().getAvatarUrl(_user?['avatar_url']);
@@ -908,9 +1064,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Text(
             _user?['fullname']?.substring(0, 1).toUpperCase() ?? 'U',
             style: TextStyle(
-                fontSize: size * 0.4,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0F172A)),
+              fontSize: size * 0.4,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ),
       );
@@ -919,9 +1076,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Text(
         _user?['fullname']?.substring(0, 1).toUpperCase() ?? 'U',
         style: TextStyle(
-            fontSize: size * 0.4,
-            fontWeight: FontWeight.w900,
-            color: const Color(0xFF0F172A)),
+          fontSize: size * 0.4,
+          fontWeight: FontWeight.w900,
+          color: const Color(0xFF0F172A),
+        ),
       ),
     );
   }
@@ -997,9 +1155,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  child: ClipOval(
-                    child: _buildAvatarContent(size: 90),
-                  ),
+                  child: ClipOval(child: _buildAvatarContent(size: 90)),
                 ),
                 Positioned(
                   bottom: 0,
@@ -1010,9 +1166,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: Colors.cyanAccent.shade400,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF0F172A), width: 2),
+                      border: Border.all(
+                        color: const Color(0xFF0F172A),
+                        width: 2,
+                      ),
                     ),
-                    child: const Icon(Icons.camera_alt, size: 16, color: Color(0xFF0F172A)),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 16,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
                 ),
               ],
@@ -1022,9 +1185,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Text(
             _user?['fullname'] ?? 'ไม่ทราบชื่อ',
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1036,13 +1200,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // Info Cards
           _buildProfileInfoCard([
             _ProfileInfoItem(
-                icon: Icons.badge_outlined, label: 'ชื่อ-สกุล', value: _user?['fullname'] ?? '-'),
+              icon: Icons.badge_outlined,
+              label: 'ชื่อ-สกุล',
+              value: _user?['fullname'] ?? '-',
+            ),
             _ProfileInfoItem(
-                icon: Icons.work_outline, label: 'บทบาท', value: _user?['role'] ?? '-'),
+              icon: Icons.work_outline,
+              label: 'บทบาท',
+              value: _user?['role'] ?? '-',
+            ),
             _ProfileInfoItem(
-                icon: Icons.business_outlined,
-                label: 'แผนก',
-                value: _user?['department'] ?? '-'),
+              icon: Icons.business_outlined,
+              label: 'แผนก',
+              value: _user?['department'] ?? '-',
+            ),
           ]),
           const SizedBox(height: 16),
 
@@ -1050,28 +1221,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           if (_assignedVehicle != null)
             _buildProfileInfoCard([
               _ProfileInfoItem(
-                  icon: Icons.directions_car,
-                  label: 'รถประจำตัว',
-                  value:
-                      '${_assignedVehicle!['brand']} ${_assignedVehicle!['model'] ?? ''}'),
+                icon: Icons.directions_car,
+                label: 'รถประจำตัว',
+                value:
+                    '${_assignedVehicle!['brand']} ${_assignedVehicle!['model'] ?? ''}',
+              ),
               _ProfileInfoItem(
-                  icon: Icons.confirmation_number_outlined,
-                  label: 'ทะเบียน',
-                  value: _assignedVehicle!['plate_number'] ?? '-'),
+                icon: Icons.confirmation_number_outlined,
+                label: 'ทะเบียน',
+                value: _assignedVehicle!['plate_number'] ?? '-',
+              ),
             ]),
           const SizedBox(height: 16),
 
           // Stats
           _buildProfileInfoCard([
             _ProfileInfoItem(
-                icon: Icons.list_alt,
-                label: 'แจ้งซ่อมทั้งหมด',
-                value: '${_tickets.length} รายการ'),
+              icon: Icons.list_alt,
+              label: 'แจ้งซ่อมทั้งหมด',
+              value: '${_tickets.length} รายการ',
+            ),
             _ProfileInfoItem(
-                icon: Icons.pending_actions,
-                label: 'รอดำเนินการ',
-                value:
-                    '${_tickets.where((t) => t['status'] == 'pending').length} รายการ'),
+              icon: Icons.pending_actions,
+              label: 'รอดำเนินการ',
+              value:
+                  '${_tickets.where((t) => t['status'] == 'pending').length} รายการ',
+            ),
           ]),
           const SizedBox(height: 16),
 
@@ -1087,12 +1262,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.history, color: Colors.green),
-                    title: const Text('ประวัติการต่อประกัน/ภาษี', style: TextStyle(color: Colors.white, fontSize: 14)),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 14),
+                    title: const Text(
+                      'ประวัติการต่อประกัน/ภาษี',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white30,
+                      size: 14,
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => RenewalsScreen(vehicle: _assignedVehicle!),
+                          builder: (_) =>
+                              RenewalsScreen(vehicle: _assignedVehicle!),
                         ),
                       );
                     },
@@ -1100,12 +1283,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   const Divider(color: Colors.white10, height: 1),
                   ListTile(
                     leading: const Icon(Icons.bar_chart, color: Colors.blue),
-                    title: const Text('รายงานการซ่อมบำรุง', style: TextStyle(color: Colors.white, fontSize: 14)),
-                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 14),
+                    title: const Text(
+                      'รายงานการซ่อมบำรุง',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white30,
+                      size: 14,
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => MaintenanceReportScreen(vehicle: _assignedVehicle!),
+                          builder: (_) => MaintenanceReportScreen(
+                            vehicle: _assignedVehicle!,
+                          ),
                         ),
                       );
                     },
@@ -1131,13 +1323,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     Icon(Icons.info_outline, color: primaryColor, size: 16),
                     const SizedBox(width: 8),
-                    const Text('AMS Mobile v1.0.0',
-                        style: TextStyle(color: Colors.white54, fontSize: 13)),
+                    const Text(
+                      'AMS Mobile v1.0.0',
+                      style: TextStyle(color: Colors.white54, fontSize: 13),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text('SPK Construction Co., Ltd.',
-                    style: TextStyle(color: Colors.white30, fontSize: 11)),
+                const Text(
+                  'SPK Construction Co., Ltd.',
+                  style: TextStyle(color: Colors.white30, fontSize: 11),
+                ),
               ],
             ),
           ),
@@ -1149,14 +1345,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: ElevatedButton.icon(
               onPressed: _handleLogout,
               icon: const Icon(Icons.logout),
-              label: const Text('ออกจากระบบ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              label: const Text(
+                'ออกจากระบบ',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent.withOpacity(0.15),
                 foregroundColor: Colors.redAccent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 side: const BorderSide(color: Colors.redAccent, width: 1),
               ),
             ),
@@ -1189,15 +1388,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.label,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 12)),
+                        Text(
+                          item.label,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
                         const SizedBox(height: 2),
-                        Text(item.value,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold)),
+                        Text(
+                          item.value,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1230,7 +1436,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Text(
         text,
         style: TextStyle(
-            color: color, fontSize: 11, fontWeight: FontWeight.bold),
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -1318,8 +1527,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         title: Text(
           titles[_currentIndex],
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
@@ -1345,29 +1556,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _buildProfile(),
         ],
       ),
-      floatingActionButton: _currentIndex != 3 &&
+      floatingActionButton:
+          _currentIndex != 3 &&
               (_assignedVehicle != null || _selectedVehicle != null)
           ? FloatingActionButton.extended(
               onPressed: () {
                 final activeV = _assignedVehicle ?? _selectedVehicle;
                 Navigator.of(context)
                     .push(
-                  MaterialPageRoute(
-                    builder: (_) => NewTicketScreen(
-                      vehicleId: activeV!['id'],
-                      plateNumber: activeV['plate_number'],
-                    ),
-                  ),
-                )
+                      MaterialPageRoute(
+                        builder: (_) => NewTicketScreen(
+                          vehicleId: activeV!['id'],
+                          plateNumber: activeV['plate_number'],
+                        ),
+                      ),
+                    )
                     .then((_) => _loadData());
               },
               backgroundColor: primaryColor,
-              icon:
-                  const Icon(Icons.add_comment, color: Color(0xFF0F172A)),
+              icon: const Icon(Icons.add_comment, color: Color(0xFF0F172A)),
               label: const Text(
                 'แจ้งซ่อม',
                 style: TextStyle(
-                    color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             )
           : null,
@@ -1385,8 +1598,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           elevation: 0,
           selectedItemColor: primaryColor,
           unselectedItemColor: Colors.white38,
-          selectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
           type: BottomNavigationBarType.fixed,
           items: const [
@@ -1433,7 +1648,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
-  void _showUpdateDialog(String newVersion, String downloadUrl, String releaseNotes) {
+  void _showUpdateDialog(
+    String newVersion,
+    String downloadUrl,
+    String releaseNotes,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: false, // Force user to update or choose later
@@ -1444,23 +1663,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           children: [
             Icon(Icons.system_update, color: Colors.cyanAccent),
             SizedBox(width: 12),
-            Text('มีอัปเดตเวอร์ชันใหม่!', style: TextStyle(color: Colors.white, fontSize: 18)),
+            Text(
+              'มีอัปเดตเวอร์ชันใหม่!',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('เวอร์ชันปัจจุบัน: $_currentAppVersion', style: const TextStyle(color: Colors.white54, fontSize: 13)),
-            Text('เวอร์ชันล่าสุด: $newVersion', style: const TextStyle(color: Colors.cyanAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(
+              'เวอร์ชันปัจจุบัน: $_currentAppVersion',
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            Text(
+              'เวอร์ชันล่าสุด: $newVersion',
+              style: const TextStyle(
+                color: Colors.cyanAccent,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             if (releaseNotes.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text('รายละเอียดการอัปเดต:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+              const Text(
+                'รายละเอียดการอัปเดต:',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(releaseNotes, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              Text(
+                releaseNotes,
+                style: const TextStyle(color: Colors.white60, fontSize: 12),
+              ),
             ],
             const SizedBox(height: 12),
-            const Text('กรุณาอัปเดตแอปพลิเคชันเพื่อใช้งานฟังก์ชันใหม่ล่าสุดและปรับปรุงประสิทธิภาพการทำงาน', style: TextStyle(color: Colors.white54, fontSize: 12)),
+            const Text(
+              'กรุณาอัปเดตแอปพลิเคชันเพื่อใช้งานฟังก์ชันใหม่ล่าสุดและปรับปรุงประสิทธิภาพการทำงาน',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
+            ),
           ],
         ),
         actions: [
@@ -1478,7 +1723,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.cyanAccent.shade400,
               foregroundColor: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('ดาวน์โหลด APK'),
           ),
@@ -1493,6 +1740,9 @@ class _ProfileInfoItem {
   final String label;
   final String value;
 
-  _ProfileInfoItem(
-      {required this.icon, required this.label, required this.value});
+  _ProfileInfoItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 }
