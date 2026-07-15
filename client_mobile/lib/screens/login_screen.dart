@@ -239,14 +239,7 @@ class _LoginScreenState extends State<LoginScreen>
                           width: 100,
                           height: 100,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.cyanAccent.shade400,
-                                Colors.cyan.shade700,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            color: Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -256,10 +249,14 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.local_shipping_outlined,
-                            size: 48,
-                            color: Color(0xFF0F172A),
+                          child: ClipOval(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -273,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ],
                         ).createShader(bounds),
                         child: const Text(
-                          'VMS MOBILE',
+                          'AMS MOBILE',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 32,

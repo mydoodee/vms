@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import GlassCard from '../components/UI/GlassCard';
 import NeonButton from '../components/UI/NeonButton';
 import { LuShieldCheck, LuLock, LuUser, LuTriangleAlert } from 'react-icons/lu';
+import logo from '../assets/logo.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -88,16 +89,16 @@ export default function Login() {
             width: '40px',
             height: '40px',
             borderRadius: '12px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
+            background: 'white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
             border: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            <LuShieldCheck size={22} color="#818cf8" />
+            <img src={logo} alt="SPK Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>SPK VMS</span>
+          <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>SPK AMS</span>
         </div>
 
         {/* Text Graphics Content */}

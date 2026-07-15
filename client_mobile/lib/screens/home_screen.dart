@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -524,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 if (_tickets.length > 3)
                   TextButton(
                     onPressed: () {
-                      _onTabTapped(1); // Switch to tickets tab
+                      _onTabTapped(2); // Switch to tickets tab
                     },
                     child: const Text('ดูทั้งหมด →',
                         style: TextStyle(color: Colors.cyan, fontSize: 13)),
@@ -639,6 +640,210 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _buildStatusBadge(ticket['status']),
           ],
         ),
+      ),
+    );
+  }
+
+  // ============ VEHICLES TAB ============
+  Widget _buildVehicleCard(dynamic vehicle) {
+    final primaryColor = Colors.cyanAccent.shade400;
+    final imagesJson = vehicle['images']?.toString() ?? '[]';
+    List<dynamic> images = [];
+    try {
+      images = json.decode(imagesJson);
+    } catch (_) {}
+
+    final hasImage = images.isNotEmpty && images[0].toString().trim().isNotEmpty;
+    final serverBase = ApiService().baseUrl.replaceAll('/api', '');
+    final imageUrl = hasImage
+        ? (images[0].toString().startsWith('http')
+            ? images[0].toString()
+            : '$serverBase/${images[0]}')
+        : '';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasImage)
+              Image.network(
+                imageUrl,
+                height: 140,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 140,
+                  color: Colors.white.withOpacity(0.02),
+                  child: const Icon(Icons.directions_car, color: Colors.white30, size: 48),
+                ),
+              )
+            else
+              Container(
+                height: 140,
+                color: Colors.white.withOpacity(0.02),
+                child: const Icon(Icons.directions_car, color: Colors.white30, size: 48),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        vehicle['plate_number'] ?? 'ไม่ระบุทะเบียน',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: primaryColor.withOpacity(0.3), width: 1),
+                        ),
+                        child: Text(
+                          vehicle['brand'] ?? 'ยี่ห้ออื่น',
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'รุ่น: ${vehicle['model'] ?? '-'} • ปี: ${vehicle['year'] ?? '-'}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_outline, size: 14, color: Colors.white38),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'ผู้ขับขี่: ${vehicle['assigned_driver'] ?? 'ไม่ได้มอบหมาย'}',
+                          style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => VehicleScreen(vehicle: vehicle),
+                              ),
+                            ).then((_) => _loadData());
+                          },
+                          icon: const Icon(Icons.info_outline, size: 16),
+                          label: const Text('ดูข้อมูลรถ'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white70,
+                            side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NewTicketScreen(
+                                  vehicleId: vehicle['id'],
+                                  plateNumber: vehicle['plate_number'],
+                                ),
+                              ),
+                            ).then((_) => _loadData());
+                          },
+                          icon: const Icon(Icons.add_comment, size: 16, color: Color(0xFF0F172A)),
+                          label: const Text('แจ้งซ่อม'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: const Color(0xFF0F172A),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehiclesList() {
+    if (_isLoading) {
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.cyanAccent));
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _loadData, child: const Text('ลองใหม่')),
+          ],
+        ),
+      );
+    }
+
+    if (_vehicles.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.directions_car_outlined, color: Colors.white24, size: 64),
+            SizedBox(height: 16),
+            Text('ไม่มีข้อมูลรถยนต์ในระบบ',
+                style: TextStyle(color: Colors.white54, fontSize: 16)),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: Colors.cyanAccent,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _vehicles.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 14),
+        itemBuilder: (context, index) {
+          return _buildVehicleCard(_vehicles[index]);
+        },
       ),
     );
   }
@@ -926,7 +1131,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     Icon(Icons.info_outline, color: primaryColor, size: 16),
                     const SizedBox(width: 8),
-                    const Text('VMS Mobile v1.0.0',
+                    const Text('AMS Mobile v1.0.0',
                         style: TextStyle(color: Colors.white54, fontSize: 13)),
                   ],
                 ),
@@ -1088,11 +1293,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     const backgroundColor = Color(0xFF0F172A);
     final primaryColor = Colors.cyanAccent.shade400;
 
-    final titles = ['แดชบอร์ด', 'รายการแจ้งซ่อม', 'โปรไฟล์'];
+    final titles = ['แดชบอร์ด', 'จัดการรถยนต์', 'รายการแจ้งซ่อม', 'โปรไฟล์'];
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
         title: Text(
           titles[_currentIndex],
           style:
@@ -1101,7 +1324,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
         actions: [
-          if (_currentIndex == 0)
+          if (_currentIndex != 3)
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white70),
               onPressed: _loadData,
@@ -1117,11 +1340,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
         children: [
           _buildDashboard(),
+          _buildVehiclesList(),
           _buildTicketsList(),
           _buildProfile(),
         ],
       ),
-      floatingActionButton: _currentIndex != 2 &&
+      floatingActionButton: _currentIndex != 3 &&
               (_assignedVehicle != null || _selectedVehicle != null)
           ? FloatingActionButton.extended(
               onPressed: () {
@@ -1170,6 +1394,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               icon: Icon(Icons.dashboard_outlined),
               activeIcon: Icon(Icons.dashboard),
               label: 'แดชบอร์ด',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_car_outlined),
+              activeIcon: Icon(Icons.directions_car),
+              label: 'รถยนต์',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.build_outlined),

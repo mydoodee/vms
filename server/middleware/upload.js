@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
         // Generate unique filename
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname).toLowerCase();
-        cb(null, `vms-${uniqueSuffix}${ext}`);
+        cb(null, `ams-${uniqueSuffix}${ext}`);
     }
 });
 

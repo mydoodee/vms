@@ -15,7 +15,7 @@ initInsuranceCompaniesTable();
 app.listen(PORT, () => {
     console.log('');
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║   🚗 Vehicle Maintenance System (VMS)    ║');
+    console.log('║  🚗 Automotive Maintenance System (AMS)  ║');
     console.log('╠══════════════════════════════════════════╣');
     console.log(`║   Server:  http://localhost:${PORT}          ║`);
     console.log(`║   API:     http://localhost:${PORT}/api      ║`);

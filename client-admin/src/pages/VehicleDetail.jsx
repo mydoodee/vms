@@ -105,7 +105,7 @@ export default function VehicleDetail() {
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px;">
             <div>
               <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #2563eb;">รายงานข้อมูลยานพาหนะ</h1>
-              <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b;">ระบบจัดการซ่อมบำรุงและประวัติรถยนต์ SPK VMS</p>
+              <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b;">ระบบจัดการซ่อมบำรุงและประวัติรถยนต์ SPK AMS</p>
             </div>
             <div style="border: 3px solid #1e293b; border-radius: 8px; padding: 6px 18px; font-size: 16px; font-weight: 800; color: #1e293b; text-align: center; background: #f8fafc;">
               ${plateDisplay}
@@ -232,7 +232,7 @@ export default function VehicleDetail() {
           </table>
 
           <div style="border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 30px; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8;">
-            <span>เอกสารฉบับนี้พิมพ์จากระบบ SPK VMS เมื่อวันที่ ${formatThaiDateShort(new Date())}</span>
+            <span>เอกสารฉบับนี้พิมพ์จากระบบ SPK AMS เมื่อวันที่ ${formatThaiDateShort(new Date())}</span>
             <span>หน้า 1 จาก 1</span>
           </div>
         </div>

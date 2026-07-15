@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   LuLayoutDashboard, 
@@ -42,12 +43,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
       {/* Brand logo */}
       <div className="sidebar-brand">
-        <div className="sidebar-logo">
-          <LuCar size={19} color="#ffffff" />
+        <div className="sidebar-logo" style={{ background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <img src={logo} alt="SPK Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
         </div>
         <div className="sidebar-title-container">
-          <div className="sidebar-title">SPK VMS</div>
-          <div className="sidebar-subtitle">Vehicle System</div>
+          <div className="sidebar-title">SPK AMS</div>
+          <div className="sidebar-subtitle">Automotive System</div>
         </div>
       </div>
 

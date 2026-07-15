@@ -19,6 +19,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  String _problemType = 'engine';
   String _severity = 'medium';
   int? _selectedGarageId;
 
@@ -164,6 +165,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     try {
       await ApiService().createTicket(
         vehicleId: widget.vehicleId,
+        problemType: _problemType,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         severity: _severity,
@@ -272,8 +274,46 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Step indicator
-              _buildStepLabel(1, 'หัวข้ออาการเสีย'),
+              // Step 1: Problem Type
+              _buildStepLabel(1, 'ประเภทปัญหา'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                dropdownColor: cardColor,
+                value: _problemType,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: cardColor,
+                  prefixIcon: Icon(Icons.build_circle_outlined,
+                      color: primaryColor.withOpacity(0.5)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'engine', child: Text('เครื่องยนต์ (Engine)')),
+                  DropdownMenuItem(value: 'brake', child: Text('ระบบเบรค (Brake)')),
+                  DropdownMenuItem(value: 'tire', child: Text('ยางรถยนต์ (Tire)')),
+                  DropdownMenuItem(value: 'air_conditioner', child: Text('ระบบแอร์ (Air Conditioner)')),
+                  DropdownMenuItem(value: 'battery', child: Text('แบตเตอรี่ (Battery)')),
+                  DropdownMenuItem(value: 'electrical', child: Text('ระบบไฟส่องสว่าง (Electrical)')),
+                  DropdownMenuItem(value: 'body', child: Text('ตัวถัง/สี (Body)')),
+                  DropdownMenuItem(value: 'suspension', child: Text('ระบบช่วงล่าง (Suspension)')),
+                  DropdownMenuItem(value: 'transmission', child: Text('เกียร์ (Transmission)')),
+                  DropdownMenuItem(value: 'other', child: Text('อื่นๆ (Other)')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _problemType = val;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Step 2: Title
+              _buildStepLabel(2, 'หัวข้ออาการเสีย'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
@@ -303,7 +343,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
               const SizedBox(height: 20),
 
-              _buildStepLabel(2, 'รายละเอียดเพิ่มเติม'),
+              _buildStepLabel(3, 'รายละเอียดเพิ่มเติม'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
@@ -333,7 +373,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               const SizedBox(height: 20),
 
               // Severity Selector
-              _buildStepLabel(3, 'ระดับความรุนแรง'),
+              _buildStepLabel(4, 'ระดับความรุนแรง'),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -353,7 +393,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               const SizedBox(height: 20),
 
               // Garage Selector
-              _buildStepLabel(4, 'เลือกอู่ซ่อม (ถ้าทราบ)'),
+              _buildStepLabel(5, 'เลือกอู่ซ่อม (ถ้าทราบ)'),
               const SizedBox(height: 8),
               if (_isLoadingGarages)
                 Container(
@@ -409,7 +449,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               const SizedBox(height: 24),
 
               // Photos Grid section
-              _buildStepLabel(5, 'ภาพถ่ายแนบ'),
+              _buildStepLabel(6, 'ภาพถ่ายแนบ'),
               const SizedBox(height: 8),
               if (_images.isEmpty)
                 GestureDetector(

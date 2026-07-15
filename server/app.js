@@ -91,7 +91,7 @@ app.use('/api/insurance-companies', require('./routes/insuranceCompanies'));
 app.get('/api/health', (req, res) => {
     res.json({
         success: true,
-        message: 'Vehicle Maintenance System API is running',
+        message: 'Automotive Maintenance System API is running',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development'
     });

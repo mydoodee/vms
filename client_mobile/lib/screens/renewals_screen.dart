@@ -470,9 +470,10 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, idx) {
               final path = list[idx].toString();
+              final serverBase = ApiService().baseUrl.replaceAll('/api', '');
               final cleanPath = path.startsWith('http')
                   ? path
-                  : 'https://app.spkconstruction.co.th/vms/$path';
+                  : '$serverBase/$path';
 
               return GestureDetector(
                 onTap: () => _showFullImage(context, cleanPath),

@@ -34,7 +34,7 @@ conn.on('ready', async () => {
     const { stdout: errLog } = await sshExec(conn, 'tail -n 40 /var/www/html/cmapi/logs/error.log');
     console.log(errLog);
 
-    console.log('\n--- VMS Server Out Log (last 20 lines) ---');
+    console.log('\n--- AMS Server Out Log (last 20 lines) ---');
     const { stdout: vmsLog } = await sshExec(conn, 'tail -n 20 /var/www/html/vms/server/logs/out.log');
     console.log(vmsLog);
   } catch (err) {

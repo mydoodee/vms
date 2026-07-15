@@ -8,12 +8,14 @@ class TicketService {
                    v.plate_number, v.brand, v.model,
                    u.fullname as reporter_name,
                    a.fullname as approver_name,
-                   g.name as registered_garage_name
+                   g.name as registered_garage_name,
+                   rc.parts_cost, rc.labor_cost, rc.other_cost, rc.total_cost
             FROM repair_tickets rt
             LEFT JOIN vehicles v ON rt.vehicle_id = v.id
             LEFT JOIN users u ON rt.reported_by = u.id
             LEFT JOIN users a ON rt.approved_by = a.id
             LEFT JOIN garages g ON rt.garage_id = g.id
+            LEFT JOIN repair_costs rc ON rt.id = rc.ticket_id
         `;
         const params = [];
         const conditions = [];

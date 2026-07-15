@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(to, subject, html) {
     try {
         const info = await transporter.sendMail({
-            from: `"Vehicle Maintenance System" <${process.env.SMTP_USER}>`,
+            from: `"Automotive Maintenance System" <${process.env.SMTP_USER}>`,
             to,
             subject,
             html
@@ -47,10 +47,10 @@ async function notifyNewTicket(ticket, recipientEmail) {
                 <p><strong>ความเร่งด่วน:</strong> <span style="color: ${ticket.severity === 'critical' ? '#ff4444' : '#ffaa00'}">${ticket.severity}</span></p>
                 <p><strong>แจ้งโดย:</strong> ${ticket.reporter_name}</p>
             </div>
-            <p style="color: #888; font-size: 12px;">Vehicle Maintenance System - Automated Notification</p>
+            <p style="color: #888; font-size: 12px;">Automotive Maintenance System - Automated Notification</p>
         </div>
     `;
-    return sendEmail(recipientEmail, `[VMS] แจ้งซ่อมใหม่: ${ticket.ticket_id}`, html);
+    return sendEmail(recipientEmail, `[AMS] แจ้งซ่อมใหม่: ${ticket.ticket_id}`, html);
 }
 
 /**
@@ -65,10 +65,10 @@ async function notifyPMAlert(schedule, vehicle, recipientEmail) {
                 <p><strong>ประเภท:</strong> ${schedule.service_type}</p>
                 <p><strong>ครบกำหนด:</strong> ${schedule.next_due_date}</p>
             </div>
-            <p style="color: #888; font-size: 12px;">Vehicle Maintenance System - Automated Notification</p>
+            <p style="color: #888; font-size: 12px;">Automotive Maintenance System - Automated Notification</p>
         </div>
     `;
-    return sendEmail(recipientEmail, `[VMS] PM Alert: ${vehicle.plate_number} - ${schedule.service_type}`, html);
+    return sendEmail(recipientEmail, `[AMS] PM Alert: ${vehicle.plate_number} - ${schedule.service_type}`, html);
 }
 
 module.exports = { sendEmail, notifyNewTicket, notifyPMAlert };

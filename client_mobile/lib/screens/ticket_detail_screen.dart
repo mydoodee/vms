@@ -28,20 +28,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     });
 
     try {
-      final response = await ApiService().getTickets();
-
-      // Find the specific ticket from history list
-      final matched = response.firstWhere(
-        (t) => t['id'] == widget.ticketId,
-        orElse: () => null,
-      );
-
-      if (matched == null) {
-        throw Exception('ไม่พบรายละเอียดใบแจ้งซ่อมนี้');
-      }
+      final data = await ApiService().getTicketById(widget.ticketId);
 
       setState(() {
-        _ticket = matched as Map<String, dynamic>;
+        _ticket = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -296,12 +286,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             children: [
                               _buildCostRow(
                                 'ค่าอะไหล่',
-                                _ticket!['parts_cost'],
+                                _ticket!['costs']?['parts_cost'] ?? _ticket!['parts_cost'],
                                 Icons.settings,
                               ),
                               _buildCostRow(
                                 'ค่าแรง',
-                                _ticket!['labor_cost'],
+                                _ticket!['costs']?['labor_cost'] ?? _ticket!['labor_cost'],
                                 Icons.engineering,
                               ),
                               Padding(
@@ -323,7 +313,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ),
                               _buildCostRow(
                                 'ยอดรวมทั้งหมด',
-                                _ticket!['total_cost'],
+                                _ticket!['costs']?['total_cost'] ?? _ticket!['total_cost'],
                                 Icons.account_balance_wallet,
                                 isTotal: true,
                               ),
@@ -356,9 +346,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 final filePath =
                                     attach['file_path'].toString();
 
+                                final serverBase = ApiService().baseUrl.replaceAll('/api', '');
                                 final cleanPath = filePath.startsWith('http')
                                     ? filePath
-                                    : 'https://app.spkconstruction.co.th/vms/$filePath';
+                                    : '$serverBase/$filePath';
 
                                 return GestureDetector(
                                   onTap: () => _showFullImage(

@@ -80,7 +80,7 @@ export default function Header() {
     if (path.startsWith('/garages')) return 'ข้อมูลศูนย์บริการ';
     if (path.startsWith('/users')) return 'จัดการผู้ใช้งาน';
     if (path.startsWith('/settings')) return 'ตั้งค่าระบบ';
-    return 'ระบบสารสนเทศ VMS';
+    return 'ระบบสารสนเทศ AMS';
   };
 
   return (

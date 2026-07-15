@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'renewals_screen.dart';
+import '../services/api_service.dart';
 
 class VehicleScreen extends StatelessWidget {
   final Map<String, dynamic> vehicle;
@@ -101,10 +102,11 @@ class VehicleScreen extends StatelessWidget {
     }
 
     final hasImage = images.isNotEmpty && images[0].trim().isNotEmpty;
+    final serverBase = ApiService().baseUrl.replaceAll('/api', '');
     final imageUrl = hasImage
         ? (images[0].startsWith('http')
               ? images[0]
-              : 'https://app.spkconstruction.co.th/vms/${images[0]}')
+              : '$serverBase/${images[0]}')
         : '';
 
     return Scaffold(
