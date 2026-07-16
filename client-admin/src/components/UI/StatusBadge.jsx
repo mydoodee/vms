@@ -6,13 +6,13 @@ export default function StatusBadge({ type, value, label }) {
   
   let badgeClass = 'badge';
   
-  if (type === 'status') {
+  if (type === 'status' && value) {
     badgeClass += ` badge-${value.toLowerCase()}`;
-  } else if (type === 'vehicle') {
+  } else if (type === 'vehicle' && value) {
     badgeClass += ` badge-${value.toLowerCase()}`;
-  } else if (type === 'severity') {
+  } else if (type === 'severity' && value) {
     badgeClass += ` badge-${value.toLowerCase()}`;
-  } else if (type === 'role') {
+  } else if (type === 'role' && value) {
     badgeClass += ` badge-${value.toLowerCase()}`;
   }
 

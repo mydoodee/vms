@@ -17,12 +17,20 @@ import UsersPage from './pages/Users';
 import Reports from './pages/Reports';
 import Garages from './pages/Garages';
 import Renewals from './pages/Renewals';
+import Settings from './pages/Settings';
 
 export default function App() {
+  const getBasename = () => {
+    const path = window.location.pathname;
+    if (path.startsWith('/vms')) return '/vms';
+    if (path.startsWith('/ams')) return '/ams';
+    return '/';
+  };
+
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router basename="/vms">
+        <Router basename={getBasename()}>
         <Routes>
           {/* Public login route */}
           <Route path="/login" element={<Login />} />
@@ -128,11 +136,11 @@ export default function App() {
           />
 
           <Route
-            path="/users"
+            path="/settings"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute>
                 <MainLayout>
-                  <UsersPage />
+                  <Settings />
                 </MainLayout>
               </ProtectedRoute>
             }

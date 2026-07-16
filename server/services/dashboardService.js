@@ -6,8 +6,8 @@ class DashboardService {
         const [vehicleStats] = await pool.execute(`
             SELECT 
                 COUNT(*) as total_vehicles,
-                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_vehicles,
-                SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as in_maintenance
+                COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) as active_vehicles,
+                COALESCE(SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END), 0) as in_maintenance
             FROM vehicles
         `);
 
@@ -15,11 +15,11 @@ class DashboardService {
         const [ticketStats] = await pool.execute(`
             SELECT 
                 COUNT(*) as total_tickets,
-                SUM(CASE WHEN status IN ('reported', 'reviewing') THEN 1 ELSE 0 END) as open_tickets,
-                SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as pending_approval,
-                SUM(CASE WHEN status = 'repairing' THEN 1 ELSE 0 END) as in_progress,
-                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-                SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed
+                COALESCE(SUM(CASE WHEN status IN ('reported', 'reviewing') THEN 1 ELSE 0 END), 0) as open_tickets,
+                COALESCE(SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END), 0) as pending_approval,
+                COALESCE(SUM(CASE WHEN status = 'repairing' THEN 1 ELSE 0 END), 0) as in_progress,
+                COALESCE(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END), 0) as completed,
+                COALESCE(SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END), 0) as closed
             FROM repair_tickets
         `);
 

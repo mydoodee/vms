@@ -7,8 +7,11 @@ class NewTicketScreen extends StatefulWidget {
   final int vehicleId;
   final String plateNumber;
 
-  const NewTicketScreen(
-      {super.key, required this.vehicleId, required this.plateNumber});
+  const NewTicketScreen({
+    super.key,
+    required this.vehicleId,
+    required this.plateNumber,
+  });
 
   @override
   State<NewTicketScreen> createState() => _NewTicketScreenState();
@@ -19,6 +22,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  String _problemType = 'engine';
   String _severity = 'medium';
   int? _selectedGarageId;
 
@@ -86,7 +90,8 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       context: context,
       backgroundColor: const Color(0xFF1E293B),
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -102,11 +107,14 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('เลือกรูปภาพ',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
+              const Text(
+                'เลือกรูปภาพ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 12),
               ListTile(
                 leading: Container(
@@ -117,10 +125,14 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                   ),
                   child: const Icon(Icons.camera_alt, color: Colors.cyanAccent),
                 ),
-                title: const Text('ถ่ายรูปจากกล้อง',
-                    style: TextStyle(color: Colors.white)),
-                subtitle: const Text('เปิดกล้องถ่ายภาพอาการเสีย',
-                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                title: const Text(
+                  'ถ่ายรูปจากกล้อง',
+                  style: TextStyle(color: Colors.white),
+                ),
+                subtitle: const Text(
+                  'เปิดกล้องถ่ายภาพอาการเสีย',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _pickImage(ImageSource.camera);
@@ -133,13 +145,19 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     color: Colors.purple.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.photo_library,
-                      color: Colors.purpleAccent),
+                  child: const Icon(
+                    Icons.photo_library,
+                    color: Colors.purpleAccent,
+                  ),
                 ),
-                title: const Text('เลือกจากแกลเลอรี',
-                    style: TextStyle(color: Colors.white)),
-                subtitle: const Text('เลือกรูปจากคลังภาพในเครื่อง',
-                    style: TextStyle(color: Colors.white38, fontSize: 12)),
+                title: const Text(
+                  'เลือกจากแกลเลอรี',
+                  style: TextStyle(color: Colors.white),
+                ),
+                subtitle: const Text(
+                  'เลือกรูปจากคลังภาพในเครื่อง',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _pickImage(ImageSource.gallery);
@@ -164,6 +182,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     try {
       await ApiService().createTicket(
         vehicleId: widget.vehicleId,
+        problemType: _problemType,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         severity: _severity,
@@ -183,8 +202,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
             ),
             backgroundColor: Colors.green.shade700,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
         Navigator.of(context).pop(true);
@@ -211,9 +231,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('แจ้งซ่อมบำรุง',
-            style:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'แจ้งซ่อมบำรุง',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: cardColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
@@ -230,10 +251,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.cyan.withOpacity(0.1),
-                      cardColor,
-                    ],
+                    colors: [Colors.cyan.withOpacity(0.1), cardColor],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: primaryColor.withOpacity(0.2)),
@@ -246,24 +264,29 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                         color: primaryColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(Icons.directions_car,
-                          color: primaryColor, size: 22),
+                      child: Icon(
+                        Icons.directions_car,
+                        color: primaryColor,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('แจ้งซ่อมสำหรับรถทะเบียน',
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 12)),
+                        const Text(
+                          'แจ้งซ่อมสำหรับรถทะเบียน',
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           widget.plateNumber,
                           style: TextStyle(
-                              color: primaryColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 1),
+                            color: primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: 1,
+                          ),
                         ),
                       ],
                     ),
@@ -272,8 +295,79 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Step indicator
-              _buildStepLabel(1, 'หัวข้ออาการเสีย'),
+              // Step 1: Problem Type
+              _buildStepLabel(1, 'ประเภทปัญหา'),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                dropdownColor: cardColor,
+                initialValue: _problemType,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: cardColor,
+                  prefixIcon: Icon(
+                    Icons.build_circle_outlined,
+                    color: primaryColor.withOpacity(0.5),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'engine',
+                    child: Text('เครื่องยนต์ (Engine)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'brake',
+                    child: Text('ระบบเบรค (Brake)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'tire',
+                    child: Text('ยางรถยนต์ (Tire)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'air_conditioner',
+                    child: Text('ระบบแอร์ (Air Conditioner)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'battery',
+                    child: Text('แบตเตอรี่ (Battery)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'electrical',
+                    child: Text('ระบบไฟส่องสว่าง (Electrical)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'body',
+                    child: Text('ตัวถัง/สี (Body)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'suspension',
+                    child: Text('ระบบช่วงล่าง (Suspension)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'transmission',
+                    child: Text('เกียร์ (Transmission)'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'other',
+                    child: Text('อื่นๆ (Other)'),
+                  ),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _problemType = val;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Step 2: Title
+              _buildStepLabel(2, 'หัวข้ออาการเสีย'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
@@ -283,15 +377,20 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                   hintStyle: const TextStyle(color: Colors.white24),
                   filled: true,
                   fillColor: cardColor,
-                  prefixIcon: Icon(Icons.title,
-                      color: primaryColor.withOpacity(0.5)),
+                  prefixIcon: Icon(
+                    Icons.title,
+                    color: primaryColor.withOpacity(0.5),
+                  ),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
-                        color: primaryColor.withOpacity(0.5), width: 1),
+                      color: primaryColor.withOpacity(0.5),
+                      width: 1,
+                    ),
                   ),
                 ),
                 validator: (value) {
@@ -303,7 +402,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
               const SizedBox(height: 20),
 
-              _buildStepLabel(2, 'รายละเอียดเพิ่มเติม'),
+              _buildStepLabel(3, 'รายละเอียดเพิ่มเติม'),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
@@ -315,12 +414,15 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                   filled: true,
                   fillColor: cardColor,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
-                        color: primaryColor.withOpacity(0.5), width: 1),
+                      color: primaryColor.withOpacity(0.5),
+                      width: 1,
+                    ),
                   ),
                 ),
                 validator: (value) {
@@ -333,27 +435,43 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               const SizedBox(height: 20),
 
               // Severity Selector
-              _buildStepLabel(3, 'ระดับความรุนแรง'),
+              _buildStepLabel(4, 'ระดับความรุนแรง'),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _buildSeverityChip('low', 'ต่ำ', Colors.green,
-                      Icons.keyboard_arrow_down),
+                  _buildSeverityChip(
+                    'low',
+                    'ต่ำ',
+                    Colors.green,
+                    Icons.keyboard_arrow_down,
+                  ),
                   const SizedBox(width: 6),
                   _buildSeverityChip(
-                      'medium', 'ปานกลาง', Colors.blue, Icons.remove),
+                    'medium',
+                    'ปานกลาง',
+                    Colors.blue,
+                    Icons.remove,
+                  ),
                   const SizedBox(width: 6),
-                  _buildSeverityChip('high', 'สูง', Colors.orange,
-                      Icons.keyboard_arrow_up),
+                  _buildSeverityChip(
+                    'high',
+                    'สูง',
+                    Colors.orange,
+                    Icons.keyboard_arrow_up,
+                  ),
                   const SizedBox(width: 6),
-                  _buildSeverityChip('critical', 'วิกฤต', Colors.red,
-                      Icons.priority_high),
+                  _buildSeverityChip(
+                    'critical',
+                    'วิกฤต',
+                    Colors.red,
+                    Icons.priority_high,
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
 
               // Garage Selector
-              _buildStepLabel(4, 'เลือกอู่ซ่อม (ถ้าทราบ)'),
+              _buildStepLabel(5, 'เลือกอู่ซ่อม (ถ้าทราบ)'),
               const SizedBox(height: 8),
               if (_isLoadingGarages)
                 Container(
@@ -366,39 +484,49 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.cyanAccent)),
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.cyanAccent,
+                        ),
+                      ),
                       SizedBox(width: 12),
-                      Text('กำลังโหลดรายชื่ออู่...',
-                          style: TextStyle(color: Colors.white54)),
+                      Text(
+                        'กำลังโหลดรายชื่ออู่...',
+                        style: TextStyle(color: Colors.white54),
+                      ),
                     ],
                   ),
                 )
               else
                 DropdownButtonFormField<int>(
                   dropdownColor: cardColor,
-                  value: _selectedGarageId,
+                  initialValue: _selectedGarageId,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: cardColor,
-                    prefixIcon: Icon(Icons.store,
-                        color: primaryColor.withOpacity(0.5)),
+                    prefixIcon: Icon(
+                      Icons.store,
+                      color: primaryColor.withOpacity(0.5),
+                    ),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none),
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   items: [
                     const DropdownMenuItem<int>(
                       value: null,
                       child: Text('ไม่ระบุ / ให้แอดมินเลือกอู่ให้'),
                     ),
-                    ..._garages.map((g) => DropdownMenuItem<int>(
-                          value: g['id'],
-                          child: Text(g['name']),
-                        )),
+                    ..._garages.map(
+                      (g) => DropdownMenuItem<int>(
+                        value: g['id'],
+                        child: Text(g['name']),
+                      ),
+                    ),
                   ],
                   onChanged: (val) {
                     setState(() {
@@ -409,7 +537,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               const SizedBox(height: 24),
 
               // Photos Grid section
-              _buildStepLabel(5, 'ภาพถ่ายแนบ'),
+              _buildStepLabel(6, 'ภาพถ่ายแนบ'),
               const SizedBox(height: 8),
               if (_images.isEmpty)
                 GestureDetector(
@@ -420,18 +548,23 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                       color: cardColor,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: Colors.white.withOpacity(0.08),
-                          style: BorderStyle.solid),
+                        color: Colors.white.withOpacity(0.08),
+                        style: BorderStyle.solid,
+                      ),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_a_photo,
-                            color: primaryColor.withOpacity(0.4), size: 36),
+                        Icon(
+                          Icons.add_a_photo,
+                          color: primaryColor.withOpacity(0.4),
+                          size: 36,
+                        ),
                         const SizedBox(height: 8),
-                        const Text('แตะเพื่อเพิ่มรูปภาพ',
-                            style: TextStyle(
-                                color: Colors.white30, fontSize: 13)),
+                        const Text(
+                          'แตะเพื่อเพิ่มรูปภาพ',
+                          style: TextStyle(color: Colors.white30, fontSize: 13),
+                        ),
                       ],
                     ),
                   ),
@@ -444,10 +577,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
                       itemCount: _images.length + 1, // +1 for add button
                       itemBuilder: (context, index) {
                         if (index == _images.length) {
@@ -458,11 +591,14 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                                 color: cardColor,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: Colors.white.withOpacity(0.08)),
+                                  color: Colors.white.withOpacity(0.08),
+                                ),
                               ),
-                              child: Icon(Icons.add_a_photo,
-                                  color: primaryColor.withOpacity(0.4),
-                                  size: 28),
+                              child: Icon(
+                                Icons.add_a_photo,
+                                color: primaryColor.withOpacity(0.4),
+                                size: 28,
+                              ),
                             ),
                           );
                         }
@@ -470,10 +606,12 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.file(_images[index],
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  fit: BoxFit.cover),
+                              child: Image.file(
+                                _images[index],
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                             Positioned(
                               top: 4,
@@ -490,8 +628,11 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                                     color: Colors.black.withOpacity(0.7),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.close,
-                                      color: Colors.white, size: 14),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -510,18 +651,26 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                   decoration: BoxDecoration(
                     color: Colors.redAccent.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.redAccent.withOpacity(0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline,
-                          color: Colors.redAccent, size: 18),
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.redAccent,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(_errorMessage!,
-                            style: const TextStyle(
-                                color: Colors.redAccent, fontSize: 13)),
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -551,15 +700,19 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                           height: 18,
                           width: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF0F172A))),
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF0F172A),
+                            ),
+                          ),
                         )
                       : const Icon(Icons.send, size: 20),
                   label: Text(
                     _isLoading ? 'กำลังส่ง...' : 'ส่งใบแจ้งซ่อมบำรุง',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -567,7 +720,8 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     foregroundColor: const Color(0xFF0F172A),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                 ),
               ),
@@ -589,30 +743,39 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
             color: Colors.cyanAccent.shade400.withOpacity(0.15),
             shape: BoxShape.circle,
             border: Border.all(
-                color: Colors.cyanAccent.shade400.withOpacity(0.3)),
+              color: Colors.cyanAccent.shade400.withOpacity(0.3),
+            ),
           ),
           child: Center(
             child: Text(
               '$step',
               style: TextStyle(
-                  color: Colors.cyanAccent.shade400,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold),
+                color: Colors.cyanAccent.shade400,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        Text(label,
-            style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildSeverityChip(
-      String value, String label, Color color, IconData icon) {
+    String value,
+    String label,
+    Color color,
+    IconData icon,
+  ) {
     final isSelected = _severity == value;
     return Expanded(
       child: GestureDetector(
@@ -625,7 +788,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.15) : const Color(0xFF1E293B),
+            color: isSelected
+                ? color.withOpacity(0.15)
+                : const Color(0xFF1E293B),
             border: Border.all(
               color: isSelected ? color : Colors.white10,
               width: isSelected ? 1.5 : 1,
@@ -634,14 +799,16 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  color: isSelected ? color : Colors.white30, size: 18),
+              Icon(icon, color: isSelected ? color : Colors.white30, size: 18),
               const SizedBox(height: 4),
-              Text(label,
-                  style: TextStyle(
-                      color: isSelected ? color : Colors.white54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold)),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? color : Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),

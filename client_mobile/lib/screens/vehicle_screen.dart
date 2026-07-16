@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'renewals_screen.dart';
+import '../services/api_service.dart';
 
 class VehicleScreen extends StatelessWidget {
   final Map<String, dynamic> vehicle;
@@ -38,8 +39,19 @@ class VehicleScreen extends StatelessWidget {
     try {
       final date = DateTime.parse(rawDate);
       final months = [
-        '', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        '',
+        'ม.ค.',
+        'ก.พ.',
+        'มี.ค.',
+        'เม.ย.',
+        'พ.ค.',
+        'มิ.ย.',
+        'ก.ค.',
+        'ส.ค.',
+        'ก.ย.',
+        'ต.ค.',
+        'พ.ย.',
+        'ธ.ค.',
       ];
       return '${date.day} ${months[date.month]} ${date.year + 543}';
     } catch (_) {
@@ -90,10 +102,11 @@ class VehicleScreen extends StatelessWidget {
     }
 
     final hasImage = images.isNotEmpty && images[0].trim().isNotEmpty;
+    final serverBase = ApiService().baseUrl.replaceAll('/api', '');
     final imageUrl = hasImage
         ? (images[0].startsWith('http')
-            ? images[0]
-            : 'https://app.spkconstruction.co.th/vms/${images[0]}')
+              ? images[0]
+              : '$serverBase/${images[0]}')
         : '';
 
     return Scaffold(
@@ -109,18 +122,16 @@ class VehicleScreen extends StatelessWidget {
             title: Text(
               'ข้อมูลรถ ทะเบียน ${vehicle['plate_number']}',
               style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.cyan.shade900.withOpacity(0.3),
-                      cardColor,
-                    ],
+                    colors: [Colors.cyan.shade900.withOpacity(0.3), cardColor],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -148,28 +159,35 @@ class VehicleScreen extends StatelessWidget {
                               height: 95,
                               decoration: BoxDecoration(
                                 color: cardColor,
-                                border: Border.all(color: Colors.white.withOpacity(0.08)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.08),
+                                ),
                               ),
                               child: Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return const Center(
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.cyanAccent,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.cyanAccent,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      color: Colors.white10,
+                                      child: const Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white24,
                                       ),
                                     ),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Colors.white10,
-                                  child: const Icon(Icons.broken_image, color: Colors.white24),
-                                ),
                               ),
                             ),
                           ),
@@ -186,35 +204,43 @@ class VehicleScreen extends StatelessWidget {
                             ),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.directions_car,
-                              color: primaryColor, size: 48),
+                          child: Icon(
+                            Icons.directions_car,
+                            color: primaryColor,
+                            size: 48,
+                          ),
                         ),
                       const SizedBox(height: 12),
                       Text(
                         '${vehicle['brand']} ${vehicle['model'] ?? ''}',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold),
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: primaryColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
-                          border:
-                              Border.all(color: primaryColor.withOpacity(0.3)),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.3),
+                          ),
                         ),
                         child: Text(
                           vehicle['plate_number'] ?? '-',
                           style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1),
+                            color: primaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
                         ),
                       ),
                     ],
@@ -263,28 +289,36 @@ class VehicleScreen extends StatelessWidget {
                     title: 'ข้อมูลทางเทคนิค',
                     icon: Icons.settings_outlined,
                     children: [
-                      _buildSpecRow('สีรถ', vehicle['color'] ?? '-',
-                          Icons.color_lens_outlined),
                       _buildSpecRow(
-                          'เลขตัวถัง (VIN)',
-                          vehicle['vin'] ?? '-',
-                          Icons.fingerprint_outlined),
+                        'สีรถ',
+                        vehicle['color'] ?? '-',
+                        Icons.color_lens_outlined,
+                      ),
                       _buildSpecRow(
-                          'เลขเครื่องยนต์',
-                          vehicle['engine_number'] ?? '-',
-                          Icons.settings_outlined),
+                        'เลขตัวถัง (VIN)',
+                        vehicle['vin'] ?? '-',
+                        Icons.fingerprint_outlined,
+                      ),
                       _buildSpecRow(
-                          'แผนกสังกัด',
-                          vehicle['department'] ?? '-',
-                          Icons.business_outlined),
+                        'เลขเครื่องยนต์',
+                        vehicle['engine_number'] ?? '-',
+                        Icons.settings_outlined,
+                      ),
                       _buildSpecRow(
-                          'ผู้ใช้งาน',
-                          vehicle['assigned_driver'] ?? '-',
-                          Icons.person_outlined),
+                        'แผนกสังกัด',
+                        vehicle['department'] ?? '-',
+                        Icons.business_outlined,
+                      ),
                       _buildSpecRow(
-                          'ขึ้นทะเบียนงาน',
-                          vehicle['work_registration'] ?? '-',
-                          Icons.app_registration_outlined),
+                        'ผู้ใช้งาน',
+                        vehicle['assigned_driver'] ?? '-',
+                        Icons.person_outlined,
+                      ),
+                      _buildSpecRow(
+                        'ขึ้นทะเบียนงาน',
+                        vehicle['work_registration'] ?? '-',
+                        Icons.app_registration_outlined,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -295,15 +329,22 @@ class VehicleScreen extends StatelessWidget {
                     icon: Icons.shield_outlined,
                     children: [
                       _buildSpecRow(
-                          'บริษัทประกันภัย',
-                          vehicle['insurance_company'] ?? '-',
-                          Icons.business),
+                        'บริษัทประกันภัย',
+                        vehicle['insurance_company'] ?? '-',
+                        Icons.business,
+                      ),
                       _buildSpecRow(
                         'ระดับประกันภัย',
                         vehicle['insurance_level'] != null
-                            ? (const ['1', '2', '2+', '3', '3+'].contains(vehicle['insurance_level'])
-                                ? 'ชั้น ${vehicle['insurance_level']}'
-                                : vehicle['insurance_level'].toString())
+                            ? (const [
+                                    '1',
+                                    '2',
+                                    '2+',
+                                    '3',
+                                    '3+',
+                                  ].contains(vehicle['insurance_level'])
+                                  ? 'ชั้น ${vehicle['insurance_level']}'
+                                  : vehicle['insurance_level'].toString())
                             : '-',
                         Icons.shield_outlined,
                       ),
@@ -390,7 +431,10 @@ class VehicleScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       gradient: LinearGradient(
-                        colors: [Colors.cyanAccent.shade400, Colors.cyan.shade600],
+                        colors: [
+                          Colors.cyanAccent.shade400,
+                          Colors.cyan.shade600,
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -411,7 +455,10 @@ class VehicleScreen extends StatelessWidget {
                       icon: const Icon(Icons.history, size: 20),
                       label: const Text(
                         'ดูประวัติการต่อประกัน/ภาษี',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
@@ -435,7 +482,11 @@ class VehicleScreen extends StatelessWidget {
   }
 
   Widget _buildQuickStat(
-      IconData icon, String value, String label, Color color) {
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -451,9 +502,10 @@ class VehicleScreen extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                  color: color,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold),
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -470,10 +522,11 @@ class VehicleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionCard(
-      {required String title,
-      required IconData icon,
-      required List<Widget> children}) {
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
@@ -492,9 +545,10 @@ class VehicleScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -515,22 +569,28 @@ class VehicleScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.cyanAccent.shade400.withOpacity(0.6), size: 18),
+          Icon(
+            icon,
+            color: Colors.cyanAccent.shade400.withOpacity(0.6),
+            size: 18,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style:
-                        const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -557,11 +617,14 @@ class VehicleScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
         ),
-        child: const Text('หมดอายุ',
-            style: TextStyle(
-                color: Colors.redAccent,
-                fontSize: 10,
-                fontWeight: FontWeight.bold)),
+        child: const Text(
+          'หมดอายุ',
+          style: TextStyle(
+            color: Colors.redAccent,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       );
     } else if (expiringSoon) {
       valueColor = Colors.amber;
@@ -572,11 +635,14 @@ class VehicleScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Colors.amber.withOpacity(0.3)),
         ),
-        child: const Text('ใกล้หมดอายุ',
-            style: TextStyle(
-                color: Colors.amber,
-                fontSize: 10,
-                fontWeight: FontWeight.bold)),
+        child: const Text(
+          'ใกล้หมดอายุ',
+          style: TextStyle(
+            color: Colors.amber,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       );
     }
 
@@ -585,29 +651,32 @@ class VehicleScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.cyanAccent.shade400.withOpacity(0.6), size: 18),
+          Icon(
+            icon,
+            color: Colors.cyanAccent.shade400.withOpacity(0.6),
+            size: 18,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style:
-                        const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
                     Text(
                       formattedDate,
                       style: TextStyle(
-                          color: valueColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
+                        color: valueColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    if (badge != null) ...[
-                      const SizedBox(width: 8),
-                      badge,
-                    ],
+                    if (badge != null) ...[const SizedBox(width: 8), badge],
                   ],
                 ),
               ],
@@ -622,7 +691,7 @@ class VehicleScreen extends StatelessWidget {
     if (num == null) return '0';
     final str = num.toString();
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    String Function(Match) mathFunc = (Match match) => '${match[1]},';
+    String mathFunc(Match match) => '${match[1]},';
     return str.replaceAllMapped(reg, mathFunc);
   }
 }

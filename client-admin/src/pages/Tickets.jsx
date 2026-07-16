@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { IoAdd, IoEye, IoTrash } from 'react-icons/io5';
+import { LuPlus, LuEye, LuTrash2 } from 'react-icons/lu';
 import api from '../services/api';
 import DataTable from '../components/UI/DataTable';
 import StatusBadge from '../components/UI/StatusBadge';
@@ -25,41 +25,12 @@ export default function Tickets() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  const showToast = (message, type = 'success') => {
-    if (type === 'success') toast.success(message);
-    else toast.error(message);
-  };
-
-  const handleDelete = (id) => {
-    setDeleteId(id);
-    setConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteId) return;
-    try {
-      await api.delete(`/tickets/${deleteId}`);
-      fetchTickets();
-      showToast('ลบใบแจ้งซ่อมสำเร็จ!', 'success');
-    } catch (err) {
-      showToast(err.response?.data?.message || 'ไม่สามารถลบข้อมูลได้', 'error');
-    } finally {
-      setDeleteId(null);
-    }
-  };
-
   const fetchTickets = async () => {
     try {
-      let url = '/tickets';
-      const params = [];
-      if (statusFilter) params.push(`status=${statusFilter}`);
-      if (severityFilter) params.push(`severity=${severityFilter}`);
-      if (params.length > 0) url += `?${params.join('&')}`;
-
-      const { data } = await api.get(url);
+      const { data } = await api.get('/tickets');
       setTickets(data.data);
     } catch (err) {
-      setError('ไม่สามารถเรียกข้อมูลใบแจ้งซ่อมได้');
+      setError('ไม่สามารถโหลดรายการใบแจ้งซ่อมได้');
     } finally {
       setLoading(false);
     }
@@ -67,60 +38,60 @@ export default function Tickets() {
 
   useEffect(() => {
     fetchTickets();
-  }, [statusFilter, severityFilter]);
+  }, []);
 
-  const getProblemTypeLabel = (prob) => {
-    const labels = {
-      engine: 'เครื่องยนต์',
-      brake: 'ระบบเบรค',
-      tire: 'ยางรถยนต์',
-      air_conditioner: 'ระบบแอร์',
-      battery: 'แบตเตอรี่',
-      electrical: 'ระบบไฟส่องสว่าง',
-      body: 'ตัวถัง/สี',
-      suspension: 'ระบบช่วงล่าง',
-      transmission: 'เกียร์',
-      other: 'อื่นๆ'
-    };
-    return labels[prob] || prob;
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setConfirmOpen(true);
   };
 
-  const getStatusLabel = (st) => {
-    const labels = {
-      reported: 'แจ้งเรื่อง',
-      reviewing: 'กำลังตรวจสอบ',
-      approved: 'อนุมัติแล้ว',
-      repairing: 'กำลังซ่อม',
-      completed: 'ซ่อมเสร็จ',
-      closed: 'ปิดงาน'
-    };
-    return labels[st] || st;
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/tickets/${deleteId}`);
+      toast.success('ลบรายการสำเร็จ!');
+      fetchTickets();
+    } catch (err) {
+      toast.error('ไม่สามารถลบรายการนี้ได้');
+    }
   };
 
   const columns = [
     { key: 'ticket_id', label: 'Ticket ID', sortable: true },
     { key: 'plate_number', label: 'ทะเบียนรถ', sortable: true },
-    { key: 'title', label: 'หัวข้อการแจ้งซ่อม', sortable: true },
-    { 
-      key: 'problem_type', 
-      label: 'หมวดหมู่ปัญหา', 
-      sortable: true,
-      render: (val) => getProblemTypeLabel(val)
-    },
+    { key: 'title', label: 'ปัญหาที่พบ', sortable: true },
     { 
       key: 'severity', 
       label: 'ความเร่งด่วน', 
       sortable: true,
-      render: (val) => {
-        const severities = { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง', critical: 'วิกฤต' };
-        return <StatusBadge type="severity" value={val} label={severities[val]} />;
-      }
+      render: (val) => (
+        <StatusBadge 
+          type="severity" 
+          value={val} 
+          label={
+            val === 'low' ? 'ต่ำ' :
+            val === 'medium' ? 'ปานกลาง' :
+            val === 'high' ? 'สูง' : 'วิกฤต'
+          } 
+        />
+      )
     },
     { 
       key: 'status', 
       label: 'สถานะ', 
       sortable: true,
-      render: (val) => <StatusBadge type="status" value={val} label={getStatusLabel(val)} />
+      render: (val) => (
+        <StatusBadge 
+          type="status" 
+          value={val} 
+          label={
+            val === 'reported' ? 'แจ้งเรื่อง' :
+            val === 'reviewing' ? 'กำลังตรวจสอบ' :
+            val === 'approved' ? 'อนุมัติแล้ว' :
+            val === 'repairing' ? 'กำลังซ่อม' :
+            val === 'completed' ? 'ซ่อมเสร็จ' : 'ปิดงาน'
+          } 
+        />
+      )
     },
     { 
       key: 'created_at', 
@@ -132,12 +103,12 @@ export default function Tickets() {
 
   return (
     <div className="animate-fade-in">
-      <div className="page-header flex-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="page-title">รายการแจ้งซ่อมทั้งหมด</h1>
-          <p className="page-subtitle">ติดตามและอัปเดตสถานะของทุกรายการแจ้งซ่อม และบันทึกค่าใช้จ่าย</p>
+          <h1 className="page-title">รายการใบแจ้งซ่อม</h1>
+          <p className="page-subtitle">แสดงรายการแจ้งซ่อมบำรุงรถยนต์และสถานะการดำเนินงานซ่อม</p>
         </div>
-        <NeonButton onClick={() => navigate('/tickets/new')} variant="primary" icon={<IoAdd />}>
+        <NeonButton onClick={() => navigate('/tickets/new')} variant="primary" icon={<LuPlus />}>
           แจ้งซ่อมบำรุง
         </NeonButton>
       </div>
@@ -189,22 +160,32 @@ export default function Tickets() {
 
       <DataTable 
         columns={columns} 
-        data={tickets} 
+        data={tickets.filter(t => {
+          if (statusFilter && t.status !== statusFilter) return false;
+          if (severityFilter && t.severity !== severityFilter) return false;
+          return true;
+        })} 
         searchField="ticket_id"
         searchPlaceholder="ค้นหา Ticket ID..."
         loading={loading}
         actions={(row) => (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <NeonButton size="sm" variant="ghost" icon={<IoEye />} onClick={() => navigate(`/tickets/${row.id}`)}>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <NeonButton size="sm" variant="ghost" icon={<LuEye size={14} />} onClick={() => navigate(`/tickets/${row.id}`)}>
               ดูรายละเอียด
             </NeonButton>
             {user?.role === 'admin' && (
-              <NeonButton size="sm" variant="danger" icon={<IoTrash />} onClick={() => handleDelete(row.id)} />
+              <button
+                onClick={() => handleDelete(row.id)}
+                className="btn btn-ghost btn-sm"
+                style={{ display: 'inline-flex', padding: '6px', color: 'var(--color-danger)', borderRadius: '8px' }}
+                title="ลบใบแจ้งซ่อม"
+              >
+                <LuTrash2 size={14} />
+              </button>
             )}
           </div>
         )}
       />
-
 
       {/* Custom Confirm Modal */}
       <ConfirmModal

@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { IoCalendarOutline, IoChevronBack, IoChevronForward } from 'react-icons/io5';
 import { THAI_MONTHS_SHORT, toThaiYear } from '../../utils/thaiDate';
 
@@ -34,10 +35,13 @@ export default function ThaiDateInput({ value, onChange, required, className, pl
     }
   }, [value]);
 
-  // Close on outside click
+  // Close on outside click (check both the input ref and the calendar portal ref)
+  const calendarRef = useRef(null);
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
+      const outsideInput = ref.current && !ref.current.contains(e.target);
+      const outsideCalendar = !calendarRef.current || !calendarRef.current.contains(e.target);
+      if (outsideInput && outsideCalendar) {
         setOpen(false);
         setYearPickerOpen(false);
       }
@@ -45,6 +49,39 @@ export default function ThaiDateInput({ value, onChange, required, className, pl
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, openUp: false });
+
+  // Calculate absolute position for the portal calendar
+  const updatePosition = useCallback(() => {
+    if (open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const spaceBelow = windowHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const calHeight = 380; // approximate calendar height
+
+      const openUp = spaceBelow < calHeight && spaceAbove > spaceBelow;
+      setDropdownPos({
+        top: openUp ? rect.top + window.scrollY - calHeight - 4 : rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: Math.max(rect.width, 280),
+        openUp
+      });
+    }
+  }, [open]);
+
+  useEffect(() => {
+    updatePosition();
+    if (open) {
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [open, updatePosition]);
 
   const displayValue = selectedDate
     ? `${selectedDate.getDate()} ${THAI_MONTHS_SHORT[selectedDate.getMonth()]} ${toThaiYear(selectedDate.getFullYear())}`
@@ -146,14 +183,13 @@ export default function ThaiDateInput({ value, onChange, required, className, pl
         />
       )}
 
-      {/* Dropdown Calendar */}
-      {open && (
-        <div style={{
+      {/* Dropdown Calendar — rendered via Portal to avoid overflow:hidden clipping */}
+      {open && ReactDOM.createPortal(
+        <div ref={calendarRef} style={{
           position: 'absolute',
-          top: '100%',
-          left: 0,
-          zIndex: 9999,
-          marginTop: '4px',
+          top: `${dropdownPos.top}px`,
+          left: `${dropdownPos.left}px`,
+          zIndex: 99999,
           background: 'var(--bg-card, #1a1a2e)',
           border: '1px solid var(--glass-border, rgba(255,255,255,0.1))',
           borderRadius: '12px',
@@ -305,7 +341,8 @@ export default function ThaiDateInput({ value, onChange, required, className, pl
               วันนี้
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

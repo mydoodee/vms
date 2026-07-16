@@ -17,9 +17,11 @@ class ApiService {
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _baseUrl = prefs.getString('vms_base_url') ?? defaultBaseUrl;
-    _token = prefs.getString('vms_token');
-    final userStr = prefs.getString('vms_user');
+    // Always reset to default URL to clear any stale dev/test URLs from SharedPreferences
+    _baseUrl = defaultBaseUrl;
+    await prefs.setString('ams_base_url', defaultBaseUrl);
+    _token = prefs.getString('ams_token');
+    final userStr = prefs.getString('ams_user');
     if (userStr != null) {
       try {
         _user = json.decode(userStr);
@@ -29,7 +31,7 @@ class ApiService {
 
   Future<void> setBaseUrl(String url) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('vms_base_url', url);
+    await prefs.setString('ams_base_url', url);
     _baseUrl = url;
   }
 
@@ -75,8 +77,8 @@ class ApiService {
       _user = data['data']['user'];
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('vms_token', _token!);
-      await prefs.setString('vms_user', json.encode(_user));
+      await prefs.setString('ams_token', _token!);
+      await prefs.setString('ams_user', json.encode(_user));
       return data;
     } else {
       throw Exception(data['message'] ?? 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
@@ -88,8 +90,8 @@ class ApiService {
     _token = null;
     _user = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('vms_token');
-    await prefs.remove('vms_user');
+    await prefs.remove('ams_token');
+    await prefs.remove('ams_user');
   }
 
   // Fetch Vehicles
@@ -156,9 +158,26 @@ class ApiService {
     }
   }
 
-  // Create Ticket (Multipart upload with images)
+  // Fetch Ticket Details by ID
+  Future<Map<String, dynamic>> getTicketById(int id) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/tickets/$id'),
+      headers: _getHeaders(token),
+    );
+
+    final data = json.decode(response.body);
+    if (response.statusCode == 200 && data['success'] == true) {
+      return data['data'] as Map<String, dynamic>;
+    } else {
+      throw Exception(data['message'] ?? 'ไม่สามารถเรียกข้อมูลรายละเอียดการแจ้งซ่อมได้');
+    }
+  }
+
+  // Create Ticket (JSON post followed by Multipart upload if images are attached)
   Future<Map<String, dynamic>> createTicket({
     required int vehicleId,
+    required String problemType,
     required String title,
     required String description,
     required String severity,
@@ -166,45 +185,63 @@ class ApiService {
     required List<File> imageFiles,
   }) async {
     final token = await getToken();
-    final uri = Uri.parse('$baseUrl/tickets');
     
-    final request = http.MultipartRequest('POST', uri);
-    request.headers.addAll({
-      'Authorization': 'Bearer $token',
-    });
+    // 1. Create Ticket via JSON POST
+    final createResponse = await http.post(
+      Uri.parse('$baseUrl/tickets'),
+      headers: _getHeaders(token),
+      body: json.encode({
+        'vehicle_id': vehicleId,
+        'problem_type': problemType,
+        'severity': severity,
+        'title': title,
+        'description': description,
+        'garage_id': garageId,
+        'estimated_cost': 0,
+      }),
+    );
 
-    request.fields['vehicle_id'] = vehicleId.toString();
-    request.fields['title'] = title;
-    request.fields['description'] = description;
-    request.fields['severity'] = severity;
-    if (garageId != null) {
-      request.fields['garage_id'] = garageId.toString();
+    final createData = json.decode(createResponse.body);
+    if (createResponse.statusCode != 201 || createData['success'] != true) {
+      throw Exception(createData['message'] ?? 'ไม่สามารถสร้างใบแจ้งซ่อมได้');
     }
 
-    for (int i = 0; i < imageFiles.length; i++) {
-      final file = imageFiles[i];
-      final stream = http.ByteStream(file.openRead());
-      final length = await file.length();
-      
-      final multipartFile = http.MultipartFile(
-        'files', // Matches the node multer array upload name 'files'
-        stream,
-        length,
-        filename: file.path.split('/').last,
-        contentType: MediaType('image', 'jpeg'),
-      );
-      request.files.add(multipartFile);
+    final ticketId = createData['data']['id'];
+
+    // 2. Upload attachments if there are any
+    if (imageFiles.isNotEmpty) {
+      final uploadUri = Uri.parse('$baseUrl/uploads/$ticketId');
+      final request = http.MultipartRequest('POST', uploadUri);
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+      });
+
+      for (int i = 0; i < imageFiles.length; i++) {
+        final file = imageFiles[i];
+        final stream = http.ByteStream(file.openRead());
+        final length = await file.length();
+        final ext = file.path.split('.').last.toLowerCase();
+        
+        final multipartFile = http.MultipartFile(
+          'files', // Matches the node multer array upload name 'files'
+          stream,
+          length,
+          filename: file.path.split('/').last,
+          contentType: MediaType('image', ext == 'png' ? 'png' : 'jpeg'),
+        );
+        request.files.add(multipartFile);
+      }
+
+      final streamedResponse = await request.send();
+      final uploadResponse = await http.Response.fromStream(streamedResponse);
+      final uploadData = json.decode(uploadResponse.body);
+
+      if (uploadResponse.statusCode != 200 || uploadData['success'] != true) {
+        throw Exception(uploadData['message'] ?? 'ส่งรูปภาพประกอบไม่สำเร็จ แต่บันทึกใบแจ้งซ่อมแล้ว');
+      }
     }
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    final data = json.decode(response.body);
-    if (response.statusCode == 201 && data['success'] == true) {
-      return data;
-    } else {
-      throw Exception(data['message'] ?? 'ไม่สามารถสร้างใบแจ้งซ่อมได้');
-    }
+    return createData;
   }
   // Upload Avatar
   Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {

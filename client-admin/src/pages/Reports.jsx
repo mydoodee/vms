@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  IoCarOutline, 
-  IoBuildOutline, 
-  IoCashOutline, 
-  IoCalendarOutline, 
-  IoStatsChartOutline, 
-  IoEyeOutline,
-  IoDocumentTextOutline
-} from 'react-icons/io5';
+  LuCar, 
+  LuWrench, 
+  LuCircleDollarSign, 
+  LuCalendar, 
+  LuTrendingUp, 
+  LuEye,
+  LuFileText
+} from 'react-icons/lu';
 import { formatThaiDate } from '../utils/thaiDate';
 import { 
   BarChart, 
@@ -193,19 +193,19 @@ export default function Reports() {
             <StatCard 
               title="จำนวนการส่งซ่อมสะสม" 
               value={`${reportData?.summary?.total_repairs || 0} ครั้ง`} 
-              icon={<IoBuildOutline />} 
+              icon={<LuWrench />} 
               color="primary" 
             />
             <StatCard 
               title="ค่าใช้จ่ายทั้งหมดของปีนี้" 
               value={`฿${Number(reportData?.summary?.total_cost || 0).toLocaleString()}`} 
-              icon={<IoCashOutline />} 
+              icon={<LuCircleDollarSign />} 
               color="danger" 
             />
             <StatCard 
               title="ค่าเฉลี่ยต่อการซ่อมหนึ่งครั้ง" 
               value={`฿${Number(reportData?.summary?.avg_cost || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
-              icon={<IoStatsChartOutline />} 
+              icon={<LuTrendingUp />} 
               color="accent" 
             />
           </div>
@@ -336,7 +336,7 @@ export default function Reports() {
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <Link to={`/tickets/${ticket.id}`} className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', padding: '6px' }}>
-                            <IoEyeOutline size={16} />
+                            <LuEye size={16} />
                           </Link>
                         </td>
                       </tr>

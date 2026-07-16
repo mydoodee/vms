@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IoAdd, IoCreate, IoTrash, IoKey, IoCheckmarkCircle, IoCarSport } from 'react-icons/io5';
+import { LuPlus, LuPen, LuTrash2, LuKey, LuCircleCheck, LuCar as IoCarSport } from 'react-icons/lu';
 import api from '../services/api';
 import DataTable from '../components/UI/DataTable';
 import StatusBadge from '../components/UI/StatusBadge';
@@ -237,7 +237,7 @@ export default function Users() {
           <h1 className="page-title">จัดการผู้ใช้งานระบบ</h1>
           <p className="page-subtitle">จัดการระดับสิทธิ์การควบคุม คัดสรรตำแหน่งจัดสรร กำหนดสิทธิ์ และรีเซ็ตรหัสผ่าน</p>
         </div>
-        <NeonButton onClick={openAddModal} variant="primary" icon={<IoAdd />}>
+        <NeonButton onClick={openAddModal} variant="primary" icon={<LuPlus />}>
           เพิ่มผู้ใช้งาน
         </NeonButton>
       </div>
@@ -300,19 +300,19 @@ export default function Users() {
             <NeonButton size="sm" variant="ghost" icon={<IoCarSport />} onClick={() => openVehicleAccessModal(row)}>
               สิทธิ์รถ
             </NeonButton>
-            <NeonButton size="sm" variant="ghost" icon={<IoKey />} onClick={() => openPasswordModal(row)}>
+            <NeonButton size="sm" variant="ghost" icon={<LuKey />} onClick={() => openPasswordModal(row)}>
               รหัสผ่าน
             </NeonButton>
-            <NeonButton size="sm" variant="ghost" icon={<IoCreate />} onClick={() => openEditModal(row)} />
+            <NeonButton size="sm" variant="ghost" icon={<LuPen />} onClick={() => openEditModal(row)} />
             {row.username !== 'admin' && (
               activeTab === 'active' ? (
-                <NeonButton size="sm" variant="danger" icon={<IoTrash />} onClick={() => handleDelete(row)} />
+                <NeonButton size="sm" variant="danger" icon={<LuTrash2 />} onClick={() => handleDelete(row)} />
               ) : (
                 <>
-                  <NeonButton size="sm" variant="success" icon={<IoCheckmarkCircle />} onClick={() => handleReactivate(row)}>
+                  <NeonButton size="sm" variant="success" icon={<LuCircleCheck />} onClick={() => handleReactivate(row)}>
                     เปิดใช้งานอีกครั้ง
                   </NeonButton>
-                  <NeonButton size="sm" variant="danger" icon={<IoTrash />} onClick={() => handleDelete(row)} />
+                  <NeonButton size="sm" variant="danger" icon={<LuTrash2 />} onClick={() => handleDelete(row)} />
                 </>
               )
             )}

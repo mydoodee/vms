@@ -15,12 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'VMS Mobile',
+      title: 'SPK AMS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.cyanAccent.shade400,
         scaffoldBackgroundColor: const Color(0xFF0F172A),
+        fontFamily: 'Prompt',
         appBarTheme: const AppBarTheme(
           elevation: 0,
           centerTitle: true,

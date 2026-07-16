@@ -4,30 +4,36 @@ import GlassCard from './GlassCard';
 export default function StatCard({ title, value, icon, trend, color = 'primary', onClick, style }) {
   const colorMap = {
     primary: {
-      bg: 'rgba(16, 185, 129, 0.15)',
-      text: '#10b981'
+      bg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+      text: '#059669',
+      borderLeft: '4px solid #10b981'
     },
     accent: {
-      bg: 'rgba(59, 130, 246, 0.15)',
-      text: '#3b82f6'
+      bg: 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-subtle) 100%)',
+      text: 'var(--color-primary)',
+      borderLeft: '4px solid var(--color-primary)'
     },
     danger: {
-      bg: 'rgba(239, 68, 68, 0.15)',
-      text: '#ef4444'
+      bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+      text: '#dc2626',
+      borderLeft: '4px solid #ef4444'
     },
     warning: {
-      bg: 'rgba(245, 158, 11, 0.15)',
-      text: '#f59e0b'
+      bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+      text: '#d97706',
+      borderLeft: '4px solid #f59e0b'
     },
     info: {
-      bg: 'rgba(168, 85, 247, 0.15)',
-      text: '#a855f7'
+      bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)',
+      text: '#7c3aed',
+      borderLeft: '4px solid #8b5cf6'
     }
   };
 
   const currentColors = colorMap[color] || {
-    bg: 'rgba(100, 116, 139, 0.1)',
-    text: '#64748b'
+    bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+    text: '#64748b',
+    borderLeft: '4px solid #94a3b8'
   };
 
   return (
@@ -37,11 +43,12 @@ export default function StatCard({ title, value, icon, trend, color = 'primary',
         display: 'flex', 
         alignItems: 'center', 
         gap: '16px', 
-        padding: '16px 20px',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        padding: '18px 20px',
+        border: '1px solid var(--glass-border)',
+        borderLeft: currentColors.borderLeft,
         background: 'var(--bg-card)',
         borderRadius: '12px',
-        boxShadow: 'none',
+        boxShadow: 'var(--shadow-sm)',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s ease',
         ...style
@@ -49,21 +56,21 @@ export default function StatCard({ title, value, icon, trend, color = 'primary',
       onMouseEnter={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(-3px)';
-          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.25)';
+          e.currentTarget.style.borderColor = 'var(--glass-border-hover)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-md)';
         }
       }}
       onMouseLeave={(e) => {
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.borderColor = 'var(--glass-border)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
         }
       }}
     >
       <div 
         style={{ 
-          fontSize: '1.4rem', 
+          fontSize: '1.5rem', 
           color: currentColors.text, 
           display: 'flex', 
           alignItems: 'center', 
@@ -78,10 +85,10 @@ export default function StatCard({ title, value, icon, trend, color = 'primary',
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>
           {title}
         </div>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 700, margin: '2px 0', color: 'var(--text-primary)', lineHeight: '1.2' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '2px 0', color: 'var(--text-primary)', lineHeight: '1.2', letterSpacing: '-0.02em' }}>
           {value}
         </h2>
         {trend && (

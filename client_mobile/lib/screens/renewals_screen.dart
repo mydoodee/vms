@@ -48,8 +48,19 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
     try {
       final d = DateTime.parse(date.toString());
       final months = [
-        '', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+        '',
+        'ม.ค.',
+        'ก.พ.',
+        'มี.ค.',
+        'เม.ย.',
+        'พ.ค.',
+        'มิ.ย.',
+        'ก.ค.',
+        'ส.ค.',
+        'ก.ย.',
+        'ต.ค.',
+        'พ.ย.',
+        'ธ.ค.',
       ];
       return '${d.day} ${months[d.month]} ${d.year + 543}';
     } catch (_) {
@@ -125,14 +136,18 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                       Text(
                         '${widget.vehicle['brand']} ${widget.vehicle['model'] ?? ''}',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'ทะเบียน: ${widget.vehicle['plate_number']}',
-                        style: const TextStyle(color: Colors.white54, fontSize: 13),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -166,46 +181,54 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Colors.cyanAccent))
+                    child: CircularProgressIndicator(color: Colors.cyanAccent),
+                  )
                 : _error != null
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.error_outline,
-                                  color: Colors.redAccent, size: 48),
-                              const SizedBox(height: 12),
-                              Text(_error!,
-                                  style: const TextStyle(color: Colors.redAccent),
-                                  textAlign: TextAlign.center),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                  onPressed: _loadRenewals,
-                                  child: const Text('ลองใหม่')),
-                            ],
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 48,
                           ),
-                        ),
-                      )
-                    : _filteredRenewals.isEmpty
-                        ? const Center(
-                            child: Text('ไม่มีข้อมูลประวัติการต่ออายุ',
-                                style: TextStyle(color: Colors.white38)),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadRenewals,
-                            color: Colors.cyanAccent,
-                            child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _filteredRenewals.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                return _buildRenewalCard(_filteredRenewals[index]);
-                              },
-                            ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            style: const TextStyle(color: Colors.redAccent),
+                            textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadRenewals,
+                            child: const Text('ลองใหม่'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _filteredRenewals.isEmpty
+                ? const Center(
+                    child: Text(
+                      'ไม่มีข้อมูลประวัติการต่ออายุ',
+                      style: TextStyle(color: Colors.white38),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadRenewals,
+                    color: Colors.cyanAccent,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _filteredRenewals.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        return _buildRenewalCard(_filteredRenewals[index]);
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -217,14 +240,16 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
     final activeColor = type == 'insurance'
         ? Colors.blue
         : type == 'tax'
-            ? Colors.green
-            : type == 'act'
-                ? Colors.orangeAccent
-                : Colors.cyanAccent.shade400;
+        ? Colors.green
+        : type == 'act'
+        ? Colors.orangeAccent
+        : Colors.cyanAccent.shade400;
 
     return ChoiceChip(
       iconTheme: IconThemeData(
-          color: isSelected ? const Color(0xFF0F172A) : Colors.white54, size: 16),
+        color: isSelected ? const Color(0xFF0F172A) : Colors.white54,
+        size: 16,
+      ),
       avatar: Icon(icon),
       label: Text(label),
       selected: isSelected,
@@ -253,9 +278,10 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
     final accentColor = isInsurance
         ? Colors.blue
         : isAct
-            ? Colors.orangeAccent
-            : Colors.green;
-    final totalCost = double.tryParse(renewal['total_cost']?.toString() ?? '0') ?? 0;
+        ? Colors.orangeAccent
+        : Colors.green;
+    final totalCost =
+        double.tryParse(renewal['total_cost']?.toString() ?? '0') ?? 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -270,10 +296,7 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Accent colored side bar
-              Container(
-                width: 6,
-                color: accentColor,
-              ),
+              Container(width: 6, color: accentColor),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -290,8 +313,8 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                                 isInsurance
                                     ? Icons.shield
                                     : isAct
-                                        ? Icons.offline_bolt
-                                        : Icons.receipt_long,
+                                    ? Icons.offline_bolt
+                                    : Icons.receipt_long,
                                 color: accentColor,
                                 size: 20,
                               ),
@@ -300,36 +323,56 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                                 isInsurance
                                     ? 'ประกันภัย'
                                     : isAct
-                                        ? 'พ.ร.บ.'
-                                        : 'ภาษีประจำปี',
+                                    ? 'พ.ร.บ.'
+                                    : 'ภาษีประจำปี',
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15),
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
                             ],
                           ),
                           Text(
                             '฿${totalCost.toStringAsFixed(2)}',
                             style: TextStyle(
-                                color: accentColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16),
+                              color: accentColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),
                       const Divider(color: Colors.white10, height: 20),
 
                       // Details
-                      _buildDetailRow('วันที่ต่ออายุ', _formatDate(renewal['renew_date'])),
-                      _buildDetailRow('วันที่หมดอายุ', _formatDate(renewal['expire_date'])),
+                      _buildDetailRow(
+                        'วันที่ต่ออายุ',
+                        _formatDate(renewal['renew_date']),
+                      ),
+                      _buildDetailRow(
+                        'วันที่หมดอายุ',
+                        _formatDate(renewal['expire_date']),
+                      ),
                       if (isInsurance) ...[
-                        _buildDetailRow('ผู้รับประกัน', renewal['provider'] ?? '-'),
-                        _buildDetailRow('ประเภทประกัน', _getInsuranceLevelText(renewal['insurance_level'])),
+                        _buildDetailRow(
+                          'ผู้รับประกัน',
+                          renewal['provider'] ?? '-',
+                        ),
+                        _buildDetailRow(
+                          'ประเภทประกัน',
+                          _getInsuranceLevelText(renewal['insurance_level']),
+                        ),
                       ] else if (isAct) ...[
-                        _buildDetailRow('บริษัท พ.ร.บ.', renewal['provider'] ?? '-'),
+                        _buildDetailRow(
+                          'บริษัท พ.ร.บ.',
+                          renewal['provider'] ?? '-',
+                        ),
                       ] else ...[
-                        _buildDetailRow('ผู้ดำเนินการ', renewal['provider'] ?? '-'),
+                        _buildDetailRow(
+                          'ผู้ดำเนินการ',
+                          renewal['provider'] ?? '-',
+                        ),
                       ],
 
                       if (renewal['notes'] != null &&
@@ -344,7 +387,10 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                           ),
                           child: Text(
                             'หมายเหตุ: ${renewal['notes']}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11),
+                            style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],
@@ -352,7 +398,7 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                       // Attachments Section
                       if (renewal['attachments'] != null) ...[
                         _buildAttachments(renewal['attachments']),
-                      ]
+                      ],
                     ],
                   ),
                 ),
@@ -371,13 +417,19 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
+            ),
           ),
           Expanded(
             child: Text(
               value,
               style: const TextStyle(
-                  color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -401,20 +453,27 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 12),
-        const Text('เอกสารแนบ:',
-            style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+        const Text(
+          'เอกสารแนบ:',
+          style: TextStyle(
+            color: Colors.white54,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 6),
         SizedBox(
           height: 50,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, idx) {
               final path = list[idx].toString();
+              final serverBase = ApiService().baseUrl.replaceAll('/api', '');
               final cleanPath = path.startsWith('http')
                   ? path
-                  : 'https://app.spkconstruction.co.th/vms/$path';
+                  : '$serverBase/$path';
 
               return GestureDetector(
                 onTap: () => _showFullImage(context, cleanPath),
@@ -430,7 +489,7 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
                     child: Image.network(
                       cleanPath,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, _, _) => const Icon(
                         Icons.broken_image,
                         size: 20,
                         color: Colors.white30,
@@ -454,9 +513,7 @@ class _RenewalsScreenState extends State<RenewalsScreen> {
         child: Stack(
           alignment: Alignment.topRight,
           children: [
-            InteractiveViewer(
-              child: Image.network(url, fit: BoxFit.contain),
-            ),
+            InteractiveViewer(child: Image.network(url, fit: BoxFit.contain)),
             CircleAvatar(
               backgroundColor: Colors.black54,
               child: IconButton(

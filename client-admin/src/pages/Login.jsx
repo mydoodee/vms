@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import GlassCard from '../components/UI/GlassCard';
 import NeonButton from '../components/UI/NeonButton';
+import { LuShieldCheck, LuLock, LuUser, LuTriangleAlert } from 'react-icons/lu';
+import logo from '../assets/logo.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -39,101 +41,199 @@ export default function Login() {
     <div
       style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-primary)',
-        padding: 'var(--space-md)'
+        display: 'grid',
+        gridTemplateColumns: '1.2fr 1fr',
+        background: '#ffffff'
       }}
+      className="login-container-split"
     >
-      <GlassCard
+      {/* Left Banner Pane */}
+      <div
         style={{
-          width: '100%',
-          maxWidth: '420px',
-          padding: 'var(--space-xl)',
-          boxShadow: 'var(--shadow-glow-primary)',
-          border: '1px solid rgba(0, 178, 255, 0.2)'
+          background: 'linear-gradient(135deg, #051427 0%, #0B203E 50%, #1e3a5f 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '48px',
+          color: '#ffffff',
+          position: 'relative',
+          overflow: 'hidden'
         }}
+        className="login-banner-pane"
       >
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
-          <span style={{ fontSize: '3rem' }}>🚗</span>
-          <h2
-            style={{
-              fontSize: '1.8rem',
-              fontWeight: 800,
-              background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginTop: '10px'
-            }}
-          >
-            SPK VEHICLE SYSTEM
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '5px', letterSpacing: '0.05em' }}>
-            ENTER YOUR SECURE ACCESS CREDENTIALS
+        {/* Glow Effects */}
+        <div style={{
+          position: 'absolute',
+          top: '-20%',
+          right: '-20%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(30, 58, 95, 0.25) 0%, rgba(30, 58, 95, 0) 70%)',
+          pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-10%',
+          left: '-10%',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(11, 32, 62, 0.2) 0%, rgba(11, 32, 62, 0) 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            background: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <img src={logo} alt="SPK Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+          </div>
+          <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>SPK AMS</span>
+        </div>
+
+        {/* Text Graphics Content */}
+        <div style={{ maxWidth: '480px', margin: 'auto 0' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '20px', letterSpacing: '-0.03em' }}>
+            ระบบจัดการยานพาหนะ และการแจ้งซ่อมบำรุง
+          </h1>
+          <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+            ควบคุม ตรวจสอบ และบริหารจัดการกองยานพาหนะของบริษัทอย่างมีประสิทธิภาพสูงสุด ติดตามสถานะเอกสาร การแจ้งซ่อมบำรุง และสถิติต่างๆ ได้ในที่เดียว
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        {/* Footer info */}
+        <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.4)' }}>
+          © SPK Construction Co., Ltd. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Form Pane */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px',
+          background: 'var(--bg-primary)'
+        }}
+      >
+        <div style={{ width: '100%', maxWidth: '380px' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              เข้าสู่ระบบผู้ดูแล
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '6px' }}>
+              ระบุชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าใช้งาน
+            </p>
+          </div>
+
           {(error || stateError) && (
             <div
               style={{
-                background: 'rgba(255, 68, 68, 0.1)',
-                border: '1px solid rgba(255, 68, 68, 0.3)',
+                background: 'var(--color-danger-light)',
+                border: '1px solid var(--color-danger-border)',
                 color: 'var(--color-danger)',
-                padding: '12px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.85rem',
-                marginBottom: 'var(--space-lg)',
-                textAlign: 'center',
-                fontWeight: 500
+                padding: '12px 14px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 600
               }}
             >
-              ⚠️ {error || stateError}
+              <LuTriangleAlert size={16} style={{ flexShrink: 0 }} />
+              <span>{error || stateError}</span>
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label">USERNAME</label>
-            <input
-              type="text"
-              required
-              className="form-input"
-              placeholder="กรอกชื่อผู้ใช้งาน"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">ชื่อผู้ใช้งาน (USERNAME)</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ 
+                  position: 'absolute', 
+                  left: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  color: 'var(--text-muted)',
+                  display: 'flex'
+                }}>
+                  <LuUser size={18} />
+                </span>
+                <input
+                  type="text"
+                  required
+                  className="form-input"
+                  style={{ paddingLeft: '38px' }}
+                  placeholder="กรอกชื่อผู้ใช้งาน"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label className="form-label">รหัสผ่าน (PASSWORD)</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ 
+                  position: 'absolute', 
+                  left: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  color: 'var(--text-muted)',
+                  display: 'flex'
+                }}>
+                  <LuLock size={18} />
+                </span>
+                <input
+                  type="password"
+                  required
+                  className="form-input"
+                  style={{ paddingLeft: '38px' }}
+                  placeholder="กรอกรหัสผ่าน"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <NeonButton
+              type="submit"
+              variant="primary"
               disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">PASSWORD</label>
-            <input
-              type="password"
-              required
-              className="form-input"
-              placeholder="กรอกรหัสผ่าน"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-
-          <NeonButton
-            type="submit"
-            variant="primary"
-            disabled={loading}
-            className="w-full"
-            style={{ marginTop: 'var(--space-md)' }}
-          >
-            {loading ? 'SECURE AUTHORIZING...' : 'SECURE ACCESS'}
-          </NeonButton>
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: 'var(--space-xl)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          © 2026 Vehicle Maintenance System. All rights secured.
+              className="w-full"
+              style={{ padding: '12px' }}
+            >
+              {loading ? 'กำลังยืนยันตัวตน...' : 'เข้าสู่ระบบ'}
+            </NeonButton>
+          </form>
         </div>
-      </GlassCard>
+      </div>
+
+      <style>{`
+        @media (max-width: 868px) {
+          .login-container-split {
+            grid-template-columns: 1fr !important;
+          }
+          .login-banner-pane {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

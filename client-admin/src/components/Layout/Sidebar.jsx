@@ -1,97 +1,102 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
-  IoSpeedometerOutline, 
-  IoCarOutline, 
-  IoBuildOutline, 
-  IoStatsChartOutline,
-  IoBusinessOutline,
-  IoShieldCheckmarkOutline
-} from 'react-icons/io5';
+  LuLayoutDashboard, 
+  LuCar, 
+  LuWrench, 
+  LuTrendingUp,
+  LuBuilding2,
+  LuShieldCheck,
+  LuSettings,
+  LuLogOut,
+  LuChevronLeft,
+  LuChevronRight
+} from 'react-icons/lu';
 
-export default function Sidebar() {
+export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { user } = useAuth();
 
   const menuItems = [
-    { path: '/', label: 'แดชบอร์ด', icon: <IoSpeedometerOutline size={20} />, roles: ['admin', 'manager'] },
-    { path: '/vehicles', label: 'ยานพาหนะ', icon: <IoCarOutline size={20} />, roles: ['admin', 'manager', 'user'] },
-    { path: '/renewals', label: 'ต่อประกัน/ภาษี', icon: <IoShieldCheckmarkOutline size={20} />, roles: ['admin', 'manager'] },
-    { path: '/tickets', label: 'ใบแจ้งซ่อม', icon: <IoBuildOutline size={20} />, roles: ['admin', 'manager', 'user'] },
-    { path: '/reports', label: 'รายงานซ่อมบำรุง', icon: <IoStatsChartOutline size={20} />, roles: ['admin', 'manager'] },
-    { path: '/garages', label: 'อู่/ศูนย์บริการ', icon: <IoBusinessOutline size={20} />, roles: ['admin', 'manager', 'user'] }
+    { path: '/', label: 'แดชบอร์ด', icon: <LuLayoutDashboard size={19} />, roles: ['admin', 'manager'] },
+    { path: '/vehicles', label: 'ยานพาหนะ', icon: <LuCar size={19} />, roles: ['admin', 'manager', 'user'] },
+    { path: '/renewals', label: 'ต่อประกัน/ภาษี', icon: <LuShieldCheck size={19} />, roles: ['admin', 'manager'] },
+    { path: '/tickets', label: 'ใบแจ้งซ่อม', icon: <LuWrench size={19} />, roles: ['admin', 'manager', 'user'] },
+    { path: '/reports', label: 'รายงานย้อนหลัง', icon: <LuTrendingUp size={19} />, roles: ['admin', 'manager'] },
+    { path: '/garages', label: 'ผู้/ศูนย์บริการ', icon: <LuBuilding2 size={19} />, roles: ['admin', 'manager', 'user'] }
   ];
 
   const filteredMenu = menuItems.filter(item => !item.roles || item.roles.includes(user?.role));
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 'var(--sidebar-width)',
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--glass-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 100,
-        backdropFilter: 'blur(10px)'
-      }}
-    >
-      {/* Brand logo */}
-      <div
-        style={{
-          height: 'var(--header-height)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '0 var(--space-lg)',
-          borderBottom: '1px solid var(--glass-border)'
-        }}
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      {/* Collapse Toggle Button */}
+      <button 
+        type="button" 
+        className="sidebar-toggle" 
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        title={isCollapsed ? "ขยายแถบเมนู" : "ยุบแถบเมนู"}
       >
-        <span style={{ fontSize: '1.5rem' }}>🚗</span>
-        <span
-          style={{
-            fontWeight: 800,
-            fontSize: '1.2rem',
-            background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '0.05em'
-          }}
-        >
-          SPK VMS
-        </span>
+        {isCollapsed ? <LuChevronRight size={14} /> : <LuChevronLeft size={14} />}
+      </button>
+
+      {/* Brand logo */}
+      <div className="sidebar-brand">
+        <div className="sidebar-logo" style={{ background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <img src={logo} alt="SPK Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+        </div>
+        <div className="sidebar-title-container">
+          <div className="sidebar-title">SPK AMS</div>
+          <div className="sidebar-subtitle">Automotive System</div>
+        </div>
       </div>
 
       {/* Nav Menu */}
-      <nav style={{ flex: 1, padding: 'var(--space-md) 0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <nav className="sidebar-nav">
+        <div className="sidebar-section-title">เมนูหลัก</div>
         {filteredMenu.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '14px',
-              padding: '12px 20px',
-              margin: '2px 16px',
-              borderRadius: '8px',
-              color: isActive ? 'var(--color-primary)' : 'var(--text-secondary)',
-              background: isActive ? 'var(--color-primary-subtle)' : 'transparent',
-              fontWeight: isActive ? 700 : 500,
-              fontSize: '0.9rem',
-              transition: 'all var(--transition-fast)'
-            })}
+            className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
             end={item.path === '/'}
+            title={isCollapsed ? item.label : undefined}
           >
             {item.icon}
             <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
+
+      {/* Bottom section */}
+      <div className="sidebar-footer">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+          title={isCollapsed ? "ตั้งค่า" : undefined}
+        >
+          <LuSettings size={19} />
+          <span>ตั้งค่า</span>
+        </NavLink>
+      </div>
+
+      {/* User mini profile */}
+      {user && (
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar" title={isCollapsed ? (user.full_name || user.username) : undefined}>
+            {user.full_name?.charAt(0) || user.username?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">
+              {user.full_name || user.username}
+            </div>
+            <div className="sidebar-user-role">
+              {user.role === 'admin' ? 'ผู้ดูแลระบบ' : user.role === 'manager' ? 'ผู้จัดการ' : 'พนักงาน'}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

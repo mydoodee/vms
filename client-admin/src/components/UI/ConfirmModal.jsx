@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from './Modal';
 import NeonButton from './NeonButton';
-import { IoWarningOutline } from 'react-icons/io5';
+import { LuTriangleAlert } from 'react-icons/lu';
 
 export default function ConfirmModal({ 
   isOpen, 
@@ -25,21 +25,27 @@ export default function ConfirmModal({
         </>
       }
     >
-      <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-        <div style={{
-          background: variant === 'danger' ? 'rgba(255, 68, 68, 0.1)' : 'var(--color-primary-subtle)',
-          borderRadius: '50%',
-          padding: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: variant === 'danger' ? '#ff4444' : 'var(--color-primary)',
-          flexShrink: 0
-        }}>
-          <IoWarningOutline size={28} />
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', padding: '10px 0' }}>
+        <div 
+          className={variant === 'danger' ? 'confirm-icon-danger' : 'confirm-icon-primary'}
+          style={{
+            background: variant === 'danger' ? '#fef2f2' : 'var(--color-primary-subtle)',
+            borderRadius: '50%',
+            padding: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: variant === 'danger' ? '#ef4444' : 'var(--color-primary)',
+            flexShrink: 0,
+            border: variant === 'danger' ? '1px solid #fca5a5' : '1px solid var(--color-primary-ring)',
+            width: '56px',
+            height: '56px'
+          }}
+        >
+          <LuTriangleAlert size={28} />
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
+          <p style={{ color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 600, lineHeight: '1.6', margin: 0 }}>
             {message}
           </p>
         </div>

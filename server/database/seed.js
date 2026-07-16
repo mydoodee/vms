@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 
 async function seed() {
-    console.log('🚗 VMS Database Seeder Starting...\n');
+    console.log('🚗 AMS Database Seeder Starting...\n');
 
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST,
