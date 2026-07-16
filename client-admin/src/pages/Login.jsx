@@ -50,7 +50,7 @@ export default function Login() {
       {/* Left Banner Pane */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%)',
+          background: 'linear-gradient(135deg, #051427 0%, #0B203E 50%, #1e3a5f 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -69,7 +69,7 @@ export default function Login() {
           width: '500px',
           height: '500px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(30, 58, 95, 0.25) 0%, rgba(30, 58, 95, 0) 70%)',
           pointerEvents: 'none'
         }} />
         <div style={{
@@ -79,7 +79,7 @@ export default function Login() {
           width: '400px',
           height: '400px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(11, 32, 62, 0.2) 0%, rgba(11, 32, 62, 0) 70%)',
           pointerEvents: 'none'
         }} />
 

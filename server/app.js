@@ -64,10 +64,10 @@ app.use('/api/apk', express.static(path.join(__dirname, 'apk')));
 app.get('/api/app/version', (req, res) => {
     res.json({
         success: true,
-        version: '1.0.1', // Bump to 1.0.1 to trigger update check if needed
-        buildNumber: 2,
+        version: '1.0.6',
+        buildNumber: 7,
         downloadUrl: 'https://app.spkconstruction.co.th/vms/api/apk/app-release.apk',
-        releaseNotes: 'ปรับปรุงประสิทธิภาพการโหลดข้อมูลแอป และแก้ไขระบบแสดงผลรูปโปรไฟล์คนขับรถ'
+        releaseNotes: 'ระบบอัปเดตใหม่ — ดาวน์โหลดและติดตั้งได้ภายในแอปโดยตรง พร้อมแสดงสถานะการดาวน์โหลดแบบ Real-time'
     });
 });
 

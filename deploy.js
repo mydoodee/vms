@@ -31,6 +31,7 @@ async function sftpUpload(connection, localFile, remoteFile) {
     connection.sftp((err, sftp) => {
       if (err) return reject(err);
       sftp.fastPut(localFile, remoteFile, (err) => {
+        sftp.end();
         if (err) return reject(err);
         resolve();
       });
@@ -51,7 +52,12 @@ async function sftpUploadDir(connection, localDir, remoteDir) {
             return;
           }
           
-          await sshExec(connection, `mkdir -p "${remote}"`);
+          await new Promise((res) => {
+            sftp.mkdir(remote, () => {
+              // Ignore error if directory already exists
+              res();
+            });
+          });
           const files = fs.readdirSync(local);
           for (const file of files) {
             await upload(path.join(local, file), remote + '/' + file);
@@ -68,8 +74,10 @@ async function sftpUploadDir(connection, localDir, remoteDir) {
       
       try {
         await upload(localDir, remoteDir);
+        sftp.end();
         resolve();
       } catch (e) {
+        try { sftp.end(); } catch (_) {}
         reject(e);
       }
     });
@@ -92,7 +100,7 @@ conn.on('ready', async () => {
     
     const serverDir = path.join(projectRoot, 'server');
     const serverFiles = [
-      'server.js', 'package.json',
+      'server.js', 'package.json', 'app.js',
     ];
     const serverDirs = [
       'config', 'controllers', 'middleware', 'routes', 'services', 'database'

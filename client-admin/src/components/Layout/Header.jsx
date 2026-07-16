@@ -62,7 +62,7 @@ export default function Header() {
       case 'admin':
         return { label: 'ผู้ดูแลระบบ', color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' };
       case 'manager':
-        return { label: 'ผู้จัดการ', color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' };
+        return { label: 'ผู้จัดการ', color: 'var(--color-primary)', bg: 'var(--color-primary-light)', border: 'var(--color-primary-ring)' };
       default:
         return { label: 'พนักงาน', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' };
     }

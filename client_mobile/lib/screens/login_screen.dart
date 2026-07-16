@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ],
                         ).createShader(bounds),
                         child: const Text(
-                          'AMS MOBILE',
+                          'SPK AMS',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 32,

@@ -8,7 +8,8 @@ export default function DataTable({
   searchPlaceholder = 'ค้นหา...',
   searchField,
   actions,
-  loading = false
+  loading = false,
+  onRowClick
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState(null);
@@ -147,7 +148,16 @@ export default function DataTable({
               </tr>
             ) : (
               paginatedData.map((row, index) => (
-                <tr key={row.id || index}>
+                <tr 
+                  key={row.id || index}
+                  onClick={(e) => {
+                    // Prevent triggering row click when clicking on buttons, links, inputs, or actions
+                    if (onRowClick && !e.target.closest('button') && !e.target.closest('a') && !e.target.closest('input') && !e.target.closest('select') && !e.target.closest('.badge')) {
+                      onRowClick(row);
+                    }
+                  }}
+                  style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                >
                   {columns.map((col) => (
                     <td key={col.key}>
                       {col.render ? col.render(row[col.key], row) : row[col.key]}

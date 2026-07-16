@@ -17,7 +17,9 @@ class ApiService {
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    _baseUrl = prefs.getString('ams_base_url') ?? defaultBaseUrl;
+    // Always reset to default URL to clear any stale dev/test URLs from SharedPreferences
+    _baseUrl = defaultBaseUrl;
+    await prefs.setString('ams_base_url', defaultBaseUrl);
     _token = prefs.getString('ams_token');
     final userStr = prefs.getString('ams_user');
     if (userStr != null) {

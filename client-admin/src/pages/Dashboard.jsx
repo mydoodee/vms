@@ -86,35 +86,35 @@ export default function Dashboard() {
         <div className="grid grid-5 mb-lg">
           <StatCard 
             title="รถยนต์ทั้งหมด" 
-            value={`${stats.total_vehicles} คัน`} 
+            value={`${stats.total_vehicles || 0} คัน`} 
             icon={<LuCar size={20} />} 
             color="accent" 
             onClick={() => navigate('/vehicles')}
           />
           <StatCard 
             title="กำลังซ่อมบำรุง" 
-            value={`${stats.in_maintenance} คัน`} 
+            value={`${stats.in_maintenance || 0} คัน`} 
             icon={<LuWrench size={20} />} 
             color="danger" 
             onClick={() => navigate('/vehicles')}
           />
           <StatCard 
             title="ซ่อมใหม่/ตรวจสอบ" 
-            value={`${stats.open_tickets} รายการ`} 
+            value={`${stats.open_tickets || 0} รายการ`} 
             icon={<LuClock size={20} />} 
             color="warning" 
             onClick={() => navigate('/tickets')}
           />
           <StatCard 
             title="ซ่อมเสร็จแล้ว" 
-            value={`${stats.completed + stats.closed} รายการ`} 
+            value={`${(stats.completed || 0) + (stats.closed || 0)} รายการ`} 
             icon={<LuCircleCheck size={20} />} 
             color="primary" 
             onClick={() => navigate('/tickets')}
           />
           <StatCard 
             title="ค่าใช้จ่ายเดือนนี้" 
-            value={`฿${Number(stats.monthly_cost).toLocaleString()}`} 
+            value={`฿${Number(stats.monthly_cost || 0).toLocaleString()}`} 
             icon={<LuCircleDollarSign size={20} />} 
             color="info" 
             onClick={() => navigate('/reports')}

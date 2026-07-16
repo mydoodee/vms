@@ -1,8 +1,12 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 import 'vehicle_screen.dart';
@@ -19,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  static const String _currentAppVersion = '1.0.0';
+  static const String _currentAppVersion = '1.0.6';
   int _currentIndex = 0;
   Map<String, dynamic>? _user;
   Map<String, dynamic>? _assignedVehicle;
@@ -29,6 +33,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   bool _isLoading = true;
   String? _error;
+
+  final TextEditingController _vehicleSearchController =
+      TextEditingController();
+  String _vehicleSearchQuery = '';
 
   late final PageController _pageController;
 
@@ -43,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _pageController.dispose();
+    _vehicleSearchController.dispose();
     super.dispose();
   }
 
@@ -774,171 +783,188 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (hasImage)
-              Image.network(
-                imageUrl,
-                height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
-                  height: 140,
-                  color: Colors.white.withOpacity(0.02),
-                  child: const Icon(
-                    Icons.directions_car,
-                    color: Colors.white30,
-                    size: 48,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Car Image Thumbnail
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    color: Colors.white.withOpacity(0.05),
+                    child: hasImage
+                        ? Image.network(
+                            imageUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const Center(
+                              child: Icon(
+                                Icons.directions_car,
+                                color: Colors.white30,
+                                size: 32,
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.directions_car,
+                              color: Colors.white30,
+                              size: 32,
+                            ),
+                          ),
                   ),
                 ),
-              )
-            else
-              Container(
-                height: 140,
-                color: Colors.white.withOpacity(0.02),
-                child: const Icon(
-                  Icons.directions_car,
-                  color: Colors.white30,
-                  size: 48,
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(width: 12),
+                // Vehicle Information
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              vehicle['plate_number'] ?? 'ไม่ระบุทะเบียน',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                letterSpacing: 0.5,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: primaryColor.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              vehicle['brand'] ?? 'ยี่ห้ออื่น',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
                       Text(
-                        vehicle['plate_number'] ?? 'ไม่ระบุทะเบียน',
+                        'รุ่น: ${vehicle['model'] ?? '-'} • ปี: ${vehicle['year'] ?? '-'}',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 0.5,
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: primaryColor.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          vehicle['brand'] ?? 'ยี่ห้ออื่น',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'รุ่น: ${vehicle['model'] ?? '-'} • ปี: ${vehicle['year'] ?? '-'}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 14,
-                        color: Colors.white38,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'ผู้ขับขี่: ${vehicle['assigned_driver'] ?? 'ไม่ได้มอบหมาย'}',
-                          style: const TextStyle(
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person_outline,
+                            size: 13,
                             color: Colors.white38,
-                            fontSize: 12,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'ผู้ขับขี่: ${vehicle['assigned_driver'] ?? 'ไม่ได้มอบหมาย'}',
+                              style: const TextStyle(
+                                color: Colors.white38,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        VehicleScreen(vehicle: vehicle),
-                                  ),
-                                )
-                                .then((_) => _loadData());
-                          },
-                          icon: const Icon(Icons.info_outline, size: 16),
-                          label: const Text('ดูข้อมูลรถ'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white70,
-                            side: BorderSide(
-                              color: Colors.white.withOpacity(0.12),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (_) => VehicleScreen(vehicle: vehicle),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                        ),
+                          )
+                          .then((_) => _loadData());
+                    },
+                    icon: const Icon(Icons.info_outline, size: 14),
+                    label: const Text(
+                      'ดูข้อมูลรถ',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (_) => NewTicketScreen(
-                                      vehicleId: vehicle['id'],
-                                      plateNumber: vehicle['plate_number'],
-                                    ),
-                                  ),
-                                )
-                                .then((_) => _loadData());
-                          },
-                          icon: const Icon(
-                            Icons.add_comment,
-                            size: 16,
-                            color: Color(0xFF0F172A),
-                          ),
-                          label: const Text('แจ้งซ่อม'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: const Color(0xFF0F172A),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                    ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (_) => NewTicketScreen(
+                                vehicleId: vehicle['id'],
+                                plateNumber: vehicle['plate_number'],
+                              ),
+                            ),
+                          )
+                          .then((_) => _loadData());
+                    },
+                    icon: const Icon(Icons.add_comment, size: 14),
+                    label: const Text(
+                      'แจ้งซ่อม',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: const Color(0xFF0F172A),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -986,17 +1012,115 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: Colors.cyanAccent,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _vehicles.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 14),
-        itemBuilder: (context, index) {
-          return _buildVehicleCard(_vehicles[index]);
-        },
-      ),
+    final query = _vehicleSearchQuery.trim().toLowerCase();
+    final filteredVehicles = _vehicles.where((v) {
+      if (query.isEmpty) return true;
+      final plate = (v['plate_number'] ?? '').toString().toLowerCase();
+      final brand = (v['brand'] ?? '').toString().toLowerCase();
+      final model = (v['model'] ?? '').toString().toLowerCase();
+      final driver = (v['assigned_driver'] ?? '').toString().toLowerCase();
+      return plate.contains(query) ||
+          brand.contains(query) ||
+          model.contains(query) ||
+          driver.contains(query);
+    }).toList();
+
+    return Column(
+      children: [
+        // Search Bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: TextField(
+            controller: _vehicleSearchController,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'ค้นหาทะเบียน ยี่ห้อ รุ่น หรือคนขับ...',
+              hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: Colors.white38,
+                size: 20,
+              ),
+              suffixIcon: _vehicleSearchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.clear,
+                        color: Colors.white38,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _vehicleSearchController.clear();
+                          _vehicleSearchQuery = '';
+                        });
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFF1E293B),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.cyanAccent.shade400.withOpacity(0.5),
+                ),
+              ),
+            ),
+            onChanged: (val) {
+              setState(() {
+                _vehicleSearchQuery = val;
+              });
+            },
+          ),
+        ),
+        // Vehicles List
+        Expanded(
+          child: filteredVehicles.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.search_off_outlined,
+                        color: Colors.white24,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'ไม่พบผลการค้นหาสำหรับ "$_vehicleSearchQuery"',
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  color: Colors.cyanAccent,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredVehicles.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      return _buildVehicleCard(filteredVehicles[index]);
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 
@@ -1324,7 +1448,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Icon(Icons.info_outline, color: primaryColor, size: 16),
                     const SizedBox(width: 8),
                     const Text(
-                      'AMS Mobile v1.0.0',
+                      'SPK AMS v1.0.5',
                       style: TextStyle(color: Colors.white54, fontSize: 13),
                     ),
                   ],
@@ -1502,7 +1626,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     const backgroundColor = Color(0xFF0F172A);
     final primaryColor = Colors.cyanAccent.shade400;
 
-    final titles = ['แดชบอร์ด', 'จัดการรถยนต์', 'รายการแจ้งซ่อม', 'โปรไฟล์'];
+    final titles = ['SPK AMS', 'จัดการรถยนต์', 'รายการแจ้งซ่อม', 'โปรไฟล์'];
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -1638,98 +1762,590 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final serverVersion = info['version']?.toString() ?? '1.0.0';
         final downloadUrl = info['downloadUrl']?.toString();
         final releaseNotes = info['releaseNotes']?.toString() ?? '';
-
         if (serverVersion != _currentAppVersion && downloadUrl != null) {
           if (mounted) {
-            _showUpdateDialog(serverVersion, downloadUrl, releaseNotes);
+            showModalBottomSheet(
+              context: context,
+              isDismissible: false,
+              enableDrag: false,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => _UpdateBottomSheet(
+                currentVersion: _currentAppVersion,
+                newVersion: serverVersion,
+                downloadUrl: downloadUrl,
+                releaseNotes: releaseNotes,
+              ),
+            );
           }
         }
       }
     } catch (_) {}
   }
+}
 
-  void _showUpdateDialog(
-    String newVersion,
-    String downloadUrl,
-    String releaseNotes,
-  ) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Force user to update or choose later
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.system_update, color: Colors.cyanAccent),
-            SizedBox(width: 12),
-            Text(
-              'มีอัปเดตเวอร์ชันใหม่!',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'เวอร์ชันปัจจุบัน: $_currentAppVersion',
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-            Text(
-              'เวอร์ชันล่าสุด: $newVersion',
-              style: const TextStyle(
-                color: Colors.cyanAccent,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (releaseNotes.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Text(
-                'รายละเอียดการอัปเดต:',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+// ============================================================
+// PROFESSIONAL IN-APP UPDATE BOTTOM SHEET
+// ============================================================
+enum _UpdateState { available, downloading, readyToInstall, error }
+
+class _UpdateBottomSheet extends StatefulWidget {
+  final String currentVersion;
+  final String newVersion;
+  final String downloadUrl;
+  final String releaseNotes;
+
+  const _UpdateBottomSheet({
+    required this.currentVersion,
+    required this.newVersion,
+    required this.downloadUrl,
+    required this.releaseNotes,
+  });
+
+  @override
+  State<_UpdateBottomSheet> createState() => _UpdateBottomSheetState();
+}
+
+class _UpdateBottomSheetState extends State<_UpdateBottomSheet>
+    with SingleTickerProviderStateMixin {
+  _UpdateState _state = _UpdateState.available;
+  double _progress = 0;
+  int _downloadedBytes = 0;
+  int _totalBytes = 0;
+  String? _apkPath;
+  String _errorMsg = '';
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  Future<void> _startDownload() async {
+    setState(() {
+      _state = _UpdateState.downloading;
+      _progress = 0;
+      _downloadedBytes = 0;
+      _totalBytes = 0;
+    });
+    try {
+      final request = http.Request('GET', Uri.parse(widget.downloadUrl));
+      final response = await request.send();
+      _totalBytes = response.contentLength ?? 0;
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/spk_ams_update.apk');
+      final sink = file.openWrite();
+
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        _downloadedBytes += chunk.length;
+        if (mounted) {
+          setState(() {
+            _progress = _totalBytes > 0
+                ? (_downloadedBytes / _totalBytes).clamp(0.0, 1.0)
+                : 0;
+          });
+        }
+      }
+      await sink.flush();
+      await sink.close();
+
+      if (mounted) {
+        setState(() {
+          _apkPath = file.path;
+          _state = _UpdateState.readyToInstall;
+          _progress = 1.0;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _state = _UpdateState.error;
+          _errorMsg = e.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _installApk() async {
+    if (_apkPath == null) return;
+    await OpenFile.open(
+      _apkPath!,
+      type: 'application/vnd.android.package-archive',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F172A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                releaseNotes,
-                style: const TextStyle(color: Colors.white60, fontSize: 12),
+              const SizedBox(height: 24),
+              // ========== HEADER ==========
+              _buildHeader(),
+              const SizedBox(height: 24),
+              // ========== CONTENT ==========
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                child: _buildContent(),
               ),
             ],
-            const SizedBox(height: 12),
-            const Text(
-              'กรุณาอัปเดตแอปพลิเคชันเพื่อใช้งานฟังก์ชันใหม่ล่าสุดและปรับปรุงประสิทธิภาพการทำงาน',
-              style: TextStyle(color: Colors.white54, fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('ภายหลัง', style: TextStyle(color: Colors.grey)),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              final uri = Uri.parse(downloadUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.cyanAccent.shade400,
-              foregroundColor: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        // Logo circle
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.cyanAccent.withOpacity(0.3),
+                blurRadius: 20,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'SPK AMS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  _VersionBadge(
+                    label: widget.currentVersion,
+                    color: Colors.white24,
+                    textColor: Colors.white54,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6),
+                    child: Icon(
+                      Icons.arrow_forward,
+                      size: 12,
+                      color: Colors.white38,
+                    ),
+                  ),
+                  _VersionBadge(
+                    label: widget.newVersion,
+                    color: Colors.cyanAccent.withOpacity(0.15),
+                    textColor: Colors.cyanAccent,
+                    isNew: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    switch (_state) {
+      case _UpdateState.available:
+        return _buildAvailableState();
+      case _UpdateState.downloading:
+        return _buildDownloadingState();
+      case _UpdateState.readyToInstall:
+        return _buildReadyState();
+      case _UpdateState.error:
+        return _buildErrorState();
+    }
+  }
+
+  Widget _buildAvailableState() {
+    return Column(
+      key: const ValueKey('available'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Release Notes
+        if (widget.releaseNotes.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome,
+                      size: 14,
+                      color: Colors.cyanAccent,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'สิ่งใหม่ในเวอร์ชันนี้',
+                      style: TextStyle(
+                        color: Colors.cyanAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  widget.releaseNotes,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 20),
+        // Primary Button
+        ElevatedButton(
+          onPressed: _startDownload,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.cyanAccent.shade400,
+            foregroundColor: const Color(0xFF0F172A),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.download_rounded, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'ดาวน์โหลดและติดตั้ง',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Secondary Button
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: Colors.white38),
+          child: const Text('ภายหลัง', style: TextStyle(fontSize: 14)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadingState() {
+    final pct = (_progress * 100).toStringAsFixed(0);
+    final dlText = _totalBytes > 0
+        ? '${_formatBytes(_downloadedBytes)} / ${_formatBytes(_totalBytes)}'
+        : _formatBytes(_downloadedBytes);
+    return Column(
+      key: const ValueKey('downloading'),
+      children: [
+        const SizedBox(height: 8),
+        // Animated circular progress
+        SizedBox(
+          width: 120,
+          height: 120,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer ring (track)
+              SizedBox(
+                width: 120,
+                height: 120,
+                child: CircularProgressIndicator(
+                  value: _progress,
+                  strokeWidth: 8,
+                  backgroundColor: Colors.white10,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.cyanAccent.shade400,
+                  ),
+                  strokeCap: StrokeCap.round,
+                ),
+              ),
+              // Center content
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$pct%',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const Text(
+                    'กำลังโหลด',
+                    style: TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Progress bar
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: _progress,
+            minHeight: 6,
+            backgroundColor: Colors.white10,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Colors.cyanAccent.shade400,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // File size
+        Text(
+          dlText,
+          style: const TextStyle(color: Colors.white54, fontSize: 13),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'กรุณาอย่าปิดแอประหว่างดาวน์โหลด',
+          style: TextStyle(color: Colors.white24, fontSize: 11),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildReadyState() {
+    return Column(
+      key: const ValueKey('ready'),
+      children: [
+        const SizedBox(height: 8),
+        // Success icon
+        ScaleTransition(
+          scale: _pulseAnim,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.cyanAccent.withOpacity(0.12),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.cyanAccent.withOpacity(0.4),
+                width: 2,
               ),
             ),
-            child: const Text('ดาวน์โหลด APK'),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.cyanAccent,
+              size: 44,
+            ),
           ),
-        ],
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'ดาวน์โหลดเสร็จสมบูรณ์!',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'พร้อมติดตั้ง SPK AMS เวอร์ชันใหม่แล้ว',
+          style: TextStyle(color: Colors.white54, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _installApk,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.cyanAccent.shade400,
+            foregroundColor: const Color(0xFF0F172A),
+            minimumSize: const Size(double.infinity, 54),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.install_mobile_rounded, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'ติดตั้งเลย',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: Colors.white38),
+          child: const Text('ภายหลัง', style: TextStyle(fontSize: 13)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Column(
+      key: const ValueKey('error'),
+      children: [
+        const SizedBox(height: 8),
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.error_outline_rounded,
+            color: Colors.redAccent,
+            size: 40,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'ดาวน์โหลดล้มเหลว',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่',
+          style: TextStyle(color: Colors.white54, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _startDownload,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.cyanAccent.shade400,
+            foregroundColor: const Color(0xFF0F172A),
+            minimumSize: const Size(double.infinity, 52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: const Text(
+            'ลองใหม่อีกครั้ง',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: Colors.white38),
+          child: const Text('ยกเลิก', style: TextStyle(fontSize: 13)),
+        ),
+      ],
+    );
+  }
+}
+
+class _VersionBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+  final bool isNew;
+
+  const _VersionBadge({
+    required this.label,
+    required this.color,
+    required this.textColor,
+    this.isNew = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        'v$label',
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: isNew ? FontWeight.w800 : FontWeight.w500,
+          letterSpacing: 0.3,
+        ),
       ),
     );
   }

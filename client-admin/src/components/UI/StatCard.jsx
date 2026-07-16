@@ -9,9 +9,9 @@ export default function StatCard({ title, value, icon, trend, color = 'primary',
       borderLeft: '4px solid #10b981'
     },
     accent: {
-      bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-      text: '#2563eb',
-      borderLeft: '4px solid #3b82f6'
+      bg: 'linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-subtle) 100%)',
+      text: 'var(--color-primary)',
+      borderLeft: '4px solid var(--color-primary)'
     },
     danger: {
       bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',

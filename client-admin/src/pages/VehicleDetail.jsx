@@ -109,9 +109,9 @@ export default function VehicleDetail() {
 
       element.innerHTML = `
         <div style="font-family: 'Sarabun', sans-serif; color: #1e293b; font-size: 13px; line-height: 1.5; padding: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0B203E; padding-bottom: 12px; margin-bottom: 20px;">
             <div>
-              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #2563eb;">รายงานข้อมูลยานพาหนะ</h1>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #0B203E;">รายงานข้อมูลยานพาหนะ</h1>
               <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b;">ระบบจัดการซ่อมบำรุงและประวัติรถยนต์ SPK AMS</p>
             </div>
             <div style="border: 3px solid #1e293b; border-radius: 8px; padding: 6px 18px; font-size: 16px; font-weight: 800; color: #1e293b; text-align: center; background: #f8fafc;">
@@ -122,7 +122,7 @@ export default function VehicleDetail() {
 
           <div style="display: flex; gap: 24px; margin-bottom: 15px;">
             <div style="flex: 1.3;">
-              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">ข้อมูลยานพาหนะพื้นฐาน</div>
+              <div style="font-size: 13px; font-weight: 700; color: #163660; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">ข้อมูลยานพาหนะพื้นฐาน</div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;">
                 <div style="display: flex; flex-direction: column;">
                   <span style="font-size: 9px; color: #64748b; font-weight: 600;">ยี่ห้อ / รุ่น</span>
@@ -229,7 +229,7 @@ export default function VehicleDetail() {
             <tbody>
               ${vehicle.repair_history && vehicle.repair_history.length > 0 ? vehicle.repair_history.slice(0, 5).map(t => `
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                  <td style="font-weight: 700; color: #2563eb; padding: 6px 8px; font-size: 11px;">${t.ticket_id}</td>
+                  <td style="font-weight: 700; color: #0B203E; padding: 6px 8px; font-size: 11px;">${t.ticket_id}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${t.title}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${getSeverityLabel(t.severity)}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${formatThaiDateShort(t.created_at)}</td>
@@ -968,9 +968,9 @@ export default function VehicleDetail() {
             key: 'insurance', 
             icon: <LuShieldCheck size={20}/>, 
             title: 'ประกันภัย', 
-            color: '#2563eb', 
-            gradient: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(37,99,235,0.02) 100%)',
-            borderColor: 'rgba(37,99,235,0.15)',
+            color: 'var(--color-primary)', 
+            gradient: 'linear-gradient(135deg, var(--color-primary-glow) 0%, var(--color-primary-subtle) 100%)',
+            borderColor: 'var(--color-primary-ring)',
             dateKey: 'insurance_expire',
             fields: [
               { label: 'บริษัท', value: vehicle.insurance_company, editKey: 'insurance_company', type: 'insurance-select' },

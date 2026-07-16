@@ -89,9 +89,9 @@ export default function Vehicles() {
 
       element.innerHTML = `
         <div style="font-family: 'Sarabun', sans-serif; color: #1e293b; font-size: 13px; line-height: 1.5; padding: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0B203E; padding-bottom: 12px; margin-bottom: 20px;">
             <div>
-              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #2563eb;">รายงานข้อมูลยานพาหนะ</h1>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #0B203E;">รายงานข้อมูลยานพาหนะ</h1>
               <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b;">ระบบจัดการซ่อมบำรุงและประวัติรถยนต์ SPK AMS</p>
             </div>
             <div style="border: 3px solid #1e293b; border-radius: 8px; padding: 6px 18px; font-size: 16px; font-weight: 800; color: #1e293b; text-align: center; background: #f8fafc;">
@@ -102,7 +102,7 @@ export default function Vehicles() {
 
           <div style="display: flex; gap: 24px; margin-bottom: 15px;">
             <div style="flex: 1.3;">
-              <div style="font-size: 13px; font-weight: 700; color: #1d4ed8; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">ข้อมูลยานพาหนะพื้นฐาน</div>
+              <div style="font-size: 13px; font-weight: 700; color: #163660; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px 0;">ข้อมูลยานพาหนะพื้นฐาน</div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;">
                 <div style="display: flex; flex-direction: column;">
                   <span style="font-size: 9px; color: #64748b; font-weight: 600;">ยี่ห้อ / รุ่น</span>
@@ -209,7 +209,7 @@ export default function Vehicles() {
             <tbody>
               ${v.repair_history && v.repair_history.length > 0 ? v.repair_history.slice(0, 5).map(t => `
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                  <td style="font-weight: 700; color: #2563eb; padding: 6px 8px; font-size: 11px;">${t.ticket_id}</td>
+                  <td style="font-weight: 700; color: #0B203E; padding: 6px 8px; font-size: 11px;">${t.ticket_id}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${t.title}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${getSeverityLabel(t.severity)}</td>
                   <td style="padding: 6px 8px; font-size: 11px;">${formatThaiDateShort(t.created_at)}</td>
@@ -545,15 +545,39 @@ export default function Vehicles() {
     let color, bg, text;
     if (days < 0) { 
       color = '#dc2626'; bg = 'rgba(220,38,38,0.10)'; text = 'หมดอายุแล้ว'; 
-    } else if (days <= 30) { 
-      color = '#ea580c'; bg = 'rgba(234,88,12,0.10)'; text = `${days}ว.`; 
-    } else if (days <= 90) { 
-      color = '#b45309'; bg = 'rgba(180,83,9,0.08)'; text = `${days}ว.`; 
-    } else { 
-      color = '#047857'; bg = 'rgba(4,120,87,0.08)'; text = `${days}ว.`; 
+    } else {
+      if (days <= 30) { 
+        color = '#ea580c'; bg = 'rgba(234,88,12,0.10)'; 
+      } else if (days <= 90) { 
+        color = '#b45309'; bg = 'rgba(180,83,9,0.08)'; 
+      } else { 
+        color = '#047857'; bg = 'rgba(4,120,87,0.08)'; 
+      }
+
+      // Calculate exact months and days
+      let years = exp.getFullYear() - today.getFullYear();
+      let months = exp.getMonth() - today.getMonth();
+      let d = exp.getDate() - today.getDate();
+
+      if (d < 0) {
+        months--;
+        const prevMonth = new Date(exp.getFullYear(), exp.getMonth(), 0);
+        d += prevMonth.getDate();
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      const totalMonths = years * 12 + months;
+      if (totalMonths > 0) {
+        text = `${totalMonths}ด ${d}ว.`;
+      } else {
+        text = `${d}ว.`;
+      }
     }
-    const d = new Date(dateStr);
-    const fmt = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()+543}`;
+    const dObj = new Date(dateStr);
+    const fmt = `${dObj.getDate().toString().padStart(2,'0')}/${(dObj.getMonth()+1).toString().padStart(2,'0')}/${dObj.getFullYear()+543}`;
     return (
       <div style={{ display:'flex', flexDirection:'column', gap:'2px' }}>
         <span style={{ fontSize:'0.72rem', fontWeight:700, color, background:bg, padding:'1px 6px', borderRadius:'4px', display:'inline-block', border: `1px solid ${color}22` }}>{text}</span>
@@ -648,9 +672,9 @@ export default function Vehicles() {
         searchField="plate_number" 
         searchPlaceholder="ค้นหาเลขทะเบียน..."
         loading={loading}
+        onRowClick={(row) => navigate(`/vehicles/${row.id}`)}
         actions={(row) => (
           <div style={{ display: 'flex', gap: '4px' }}>
-            <NeonButton size="sm" variant="ghost" icon={<LuEye size={14} />} onClick={() => navigate(`/vehicles/${row.id}`)} title="ดูรายละเอียด" style={{ padding: '6px' }} />
             <NeonButton size="sm" variant="ghost" icon={<LuPrinter size={14} />} onClick={() => printVehicleReport(row.id)} title="พิมพ์รายละเอียด (PDF)" style={{ padding: '6px' }} />
             {canEdit && (
               <>
